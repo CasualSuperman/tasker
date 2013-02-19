@@ -12,7 +12,10 @@
 
 		return {
 			display: function() {
-				categories[category](container, today);
+				$(container).fadeOut(function() {
+					categories[category](container, today);
+					$(this).fadeIn();
+				});
 			},
 			registerView: function(name, displayFunction) {
 				// Add the category to our options.
