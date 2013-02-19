@@ -38,6 +38,10 @@
 		lastVisibleDate.setDate(0);
 
 		var iterDate = new Date(firstVisibleDate);
+		iterDate.setHours(0);
+		iterDate.setMinutes(0);
+		iterDate.setSeconds(0);
+		iterDate.setMilliseconds(0);
 
 		// We quit when we pass the last day of the month and it is a Sunday.
 		while (iterDate < lastVisibleDate || iterDate.getDay() != 0) {
@@ -53,7 +57,7 @@
 
 			if (iterDate.getMonth() !== date.getMonth()) {
 				cell.addClass("sideMonth");
-			} else if (iterDate.valueOf() === date.valueOf()) {
+			} else if (iterDate.toDateString() === new Date().toDateString()) {
 				cell.addClass("today");
 			}
 
@@ -62,6 +66,21 @@
 		}
 
 		$(container).empty().append(fragment);
+
+		calendar.bind("mousewheel", function(e) {
+			e = e.originalEvent;
+			if (e.wheelDelta > 0) {
+				var newDate = new Date(date);
+				newDate.setMonth(newDate.getMonth() - 1);
+				Calendar.setDate(newDate);
+				Calendar.display();
+			} else if (e.wheelDelta < 0) {
+				var newDate = new Date(date);
+				newDate.setMonth(newDate.getMonth() + 1);
+				Calendar.setDate(newDate);
+				Calendar.display();
+			}
+		});
 	}
 
 	function displayYear(container, date) {

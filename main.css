@@ -32,6 +32,7 @@ body * {
 	padding-right: 300px;
 	table-layout: fixed;
 	width: 100%;
+	z-index: 2;
 }
 #month td, #month th {
 	border-right: 1px solid #ddd;
@@ -67,5 +68,5 @@ body * {
 	position: absolute;
 	right: 0;
 	width: 300px;
-	z-index: -1;
+	z-index: 1;
 }
