@@ -22,6 +22,7 @@ var store = sessions.NewCookieStore([]byte{0x65, 0x23, 0x51, 0x53, 0x6e, 0x4b,
 
 type handlerFunc func(http.ResponseWriter, *http.Request, db.Database)
 
+// A map of url handlers
 var handlers = map[string]handlerFunc{
 	"user/login":    userLogin,
 	"user/activate": userActivate,
@@ -31,7 +32,8 @@ var handlers = map[string]handlerFunc{
 // theoretically run multiple API servers at different locations with different
 // database conenctions.
 func runApiServer(sess db.Database) {
-	// This just uses an anonymous function for now to show that it works.
+	// If we get a call on /api, check the path and see if we have a handler
+	// for it.
 	http.HandleFunc("/api/", func(res http.ResponseWriter, req *http.Request) {
 		handler, ok := handlers[req.URL.Path[len("/api/"):]]
 		if ok {
@@ -42,6 +44,8 @@ func runApiServer(sess db.Database) {
 	})
 }
 
+// Login a user by checking their email/password against the email and bcrypt'd
+// password in the database. If it is successful, the user gets a session.
 func userLogin(res http.ResponseWriter, req *http.Request, sess db.Database) {
 	res.Header().Add("Content-Type", "text/plain")
 	email := req.Form.Get("email")
@@ -68,6 +72,9 @@ func userLogin(res http.ResponseWriter, req *http.Request, sess db.Database) {
 	res.Write([]byte("{\"successful\": false}"))
 }
 
+// Activate a user using HMAC authentication. HMAC generated using sha256, a
+// secret key, the user's uid, email, and bcrypt'd password. If it is
+// successful, we log the user in.
 func userActivate(res http.ResponseWriter, req *http.Request, sess db.Database) {
 	res.Header().Add("Content-Type", "text/plain")
 	validation := req.Form.Get("validation")
