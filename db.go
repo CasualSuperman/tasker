@@ -1,8 +1,11 @@
 package main
 
-// Put all these in one place.
-const (
-	DB_NAME = "cs495_db1"
-	DB_USER = "cs495st1"
-	DB_PASS = "cal_b6Y%dV"
-)
+import "github.com/gosexy/db"
+
+// Database connection settings.
+var dbSettings = db.DataSource{
+	Host:     "localhost",
+	Database: "cs495_db1",
+	User:     "cs495st1",
+	Password: "cal_b6Y%dV",
+}
