@@ -107,6 +107,8 @@ func userActivate(res http.ResponseWriter, req *http.Request, sess db.Database) 
 	res.Write([]byte("{\"activated\": false}"))
 }
 
+// Using these components of a user in our db, generate a consistent string
+// while not revealing important data.
 func makeKey(email, hashedPass string, uid int64) []byte {
 	bEmail := []byte(email)
 	bHashedPass := []byte(hashedPass)
