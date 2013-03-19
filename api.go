@@ -86,8 +86,12 @@ func userActivate(res http.ResponseWriter, req *http.Request, sess db.Database) 
 			if bytes.Equal(result, []byte(validation)) {
 				users.Update(
 					db.Set{"activated": true},
-					db.Cond{"email": email},
+					db.Cond{"uid": uid},
 				)
+				session, _ := store.Get(req, "calendar")
+				session.Values["logged-in"] = true
+				session.Values["uid"] = uid
+				session.Save(req, res)
 				res.Write([]byte("{\"activated\": true}"))
 				return
 			}
