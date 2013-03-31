@@ -22,10 +22,14 @@ CREATE TABLE Calendars (
 	canShare BOOLEAN,
 	# If this user can write to this calendar.
 	canWrite BOOLEAN,
+
 	# What this user named this calendar.
 	name VARCHAR(200),
-	FOREIGN KEY(uid) REFERENCES Users
+
+	FOREIGN KEY(uid) REFERENCES Users(uid)
 );
+
+CREATE INDEX cid ON Calendars(cid);
 
 # Unique event ids allow for sharing.
 CREATE TABLE Events (
@@ -61,8 +65,8 @@ CREATE TABLE EventOwners (
 	uid INT NOT NULL,
 	eid INT NOT NULL,
 	PRIMARY KEY (uid, eid),
-	FOREIGN KEY(uid) REFERENCES Users,
-	FOREIGN KEY(eid) REFERENCES Events
+	FOREIGN KEY(uid) REFERENCES Users(uid),
+	FOREIGN KEY(eid) REFERENCES Events(eid)
 );
 
 # One event can be in multiple calendars, one calendar can have multiple
@@ -72,6 +76,6 @@ CREATE TABLE CalendarEvents (
 	eid INT NOT NULL,
 	cid INT NOT NULL,
 	PRIMARY KEY (eid, cid),
-	FOREIGN KEY(eid) REFERENCES Events,
-	FOREIGN KEY(cid) REFERENCES Calendars
+	FOREIGN KEY(eid) REFERENCES Events(eid),
+	FOREIGN KEY(cid) REFERENCES Calendars(cid)
 );
