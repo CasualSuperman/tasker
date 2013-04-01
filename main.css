@@ -16,14 +16,25 @@ body * {
 	width: 100%;
 }
 #name {
- 	bottom: 0;
+ 	bottom: 10%;
  	color: #f3f3f3;
-	font-size: 27.5em;
+	font-size: 20.5em;
  	left: 35%;
 	overflow: hidden;
 	position: absolute;
  	text-shadow: #f3f3f3 0 0 1px;
 	width: 65%;
+	z-index: -3;
+}
+#year {
+ 	bottom: 0;
+ 	color: #f3f3f3;
+	font-size: 12.5em;
+ 	left: 5%;
+	overflow: hidden;
+	position: absolute;
+ 	text-shadow: #f3f3f3 0 0 1px;
+	width: 95%;
 	z-index: -3;
 }
 #month {
