@@ -16,7 +16,13 @@ var store = sessions.NewCookieStore([]byte{0x65, 0x23, 0x51, 0x53, 0x6e, 0x4b,
 	0x65, 0x34, 0x33, 0x39, 0x55, 0xff,
 	0x3e, 0xe4, 0x77, 0x20, 0x00, 0xe1})
 
-type handlerFunc func(http.ResponseWriter, *http.Request, db.Database)
+type apiResponse interface {
+	Json() []byte
+	Code() int
+	Type() string
+}
+
+type handlerFunc func(http.ResponseWriter, *http.Request, db.Database) apiResponse
 
 // A map of url handlers
 var handlers = map[string]handlerFunc{
@@ -33,7 +39,10 @@ func runApiServer(sess db.Database) {
 	http.HandleFunc("/api/", func(res http.ResponseWriter, req *http.Request) {
 		handler, ok := handlers[req.URL.Path[len("/api/"):]]
 		if ok {
-			handler(res, req, sess)
+			resp := handler(res, req, sess)
+			res.Header().Add("content-type", resp.Type())
+			res.WriteHeader(resp.Code())
+			res.Write(resp.Json())
 		} else {
 			res.WriteHeader(http.StatusNotImplemented)
 		}

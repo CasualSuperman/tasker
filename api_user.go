@@ -11,8 +11,9 @@ import (
 
 // Login a user by checking their email/password against the email and bcrypt'd
 // password in the database. If it is successful, the user gets a session.
-func userLogin(res http.ResponseWriter, req *http.Request, sess db.Database) {
-	res.Header().Add("Content-Type", "text/plain")
+func userLogin(res http.ResponseWriter, req *http.Request, sess db.Database) apiResponse {
+	resp := defaultUserResponse()
+
 	email := req.Form.Get("email")
 
 	if email != "" {
@@ -29,19 +30,19 @@ func userLogin(res http.ResponseWriter, req *http.Request, sess db.Database) {
 				session.Values["logged-in"] = true
 				session.Values["uid"] = user.GetInt("uid")
 				session.Save(req, res)
-				res.Write([]byte("{\"successful\": true}"))
-				return
+				resp.Succeed()
 			}
 		}
 	}
-	res.Write([]byte("{\"successful\": false}"))
+	return resp
 }
 
 // Activate a user using HMAC authentication. HMAC generated using sha256, a
 // secret key, the user's uid, email, and bcrypt'd password. If it is
 // successful, we log the user in.
-func userActivate(res http.ResponseWriter, req *http.Request, sess db.Database) {
-	res.Header().Add("Content-Type", "text/plain")
+func userActivate(res http.ResponseWriter, req *http.Request, sess db.Database) apiResponse {
+	resp := defaultUserResponse()
+
 	validation := req.Form.Get("validation")
 	email := req.Form.Get("email")
 
@@ -64,12 +65,11 @@ func userActivate(res http.ResponseWriter, req *http.Request, sess db.Database) 
 				session.Values["logged-in"] = true
 				session.Values["uid"] = uid
 				session.Save(req, res)
-				res.Write([]byte("{\"activated\": true}"))
-				return
+				resp.Succeed()
 			}
 		}
 	}
-	res.Write([]byte("{\"activated\": false}"))
+	return resp
 }
 
 // Using these components of a user in our db, generate a consistent string
