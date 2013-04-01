@@ -18,7 +18,8 @@
 	function displayMonth(container, date) {
 		var fragment = document.createDocumentFragment(),
 			calendar = $("<table />", {'id':'month'}),
-			name = $("<div />", {'id':'name'}),
+			month = $("<div />", {'id':'name'}),
+			year = $("<div />", {'id':'year'}),
 			row = $("<tr />");
 
 		dayNames.forEach(function(day) {
@@ -26,15 +27,17 @@
 		});
 		calendar.append(row);
 
-		$(fragment).append([calendar, name]);
-		name.text(monthNames[date.getMonth()].toLowerCase());
+		$(fragment).append([calendar, month, year]);
+		month.text(monthNames[date.getMonth()].toLowerCase());
+		year.text(date.getFullYear());
 
 		var firstVisibleDate = new Date(date);
 		firstVisibleDate.setDate(1);
 		firstVisibleDate.setDate(1 - firstVisibleDate.getDay());
 
 		var lastVisibleDate = new Date(date);
-		lastVisibleDate.setMonth(lastVisibleDate.getMonth() + 1);
+		lastVisibleDate.setDate(0);
+		lastVisibleDate.setMonth(lastVisibleDate.getMonth() + 2);
 		lastVisibleDate.setDate(0);
 
 		var iterDate = new Date(firstVisibleDate);
@@ -42,6 +45,8 @@
 		iterDate.setMinutes(0);
 		iterDate.setSeconds(0);
 		iterDate.setMilliseconds(0);
+
+		console.log(firstVisibleDate, lastVisibleDate, iterDate);
 
 		// We quit when we pass the last day of the month and it is a Sunday.
 		while (iterDate < lastVisibleDate || iterDate.getDay() != 0) {
@@ -68,6 +73,7 @@
 		$(container).empty().append(fragment);
 
 		calendar.bind("mousewheel", function(e) {
+			console.log(e);
 			e = e.originalEvent;
 			if (e.wheelDelta > 0) {
 				var newDate = new Date(date);
