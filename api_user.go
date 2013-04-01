@@ -44,21 +44,14 @@ func userRegister(res http.ResponseWriter, req *http.Request, sess db.Database) 
 				url := baseURL + "api/user/activate?email=" + email +
 					"&validation=" + makeValidationCode(email, hashedPass)
 
-				println(url)
-
 				// Send the email
-				err = smtp.SendMail(
-					"smtp.gmail.com:25",
-					emailAuth,
-					"tasker@casualsuperman.com",
-					[]string{email},
-					[]byte(
-						"Welcome to tasker!\n" +
-						"\n" +
-						"Please activate your email by clicking this link: " + url + "\n" +
-						"\n" +
-						"Thanks,\n" +
-						"The Tasker Team"),
+				sendEmail(email, "Tasker Account Activation",
+					"Welcome to tasker!\n"+
+						"\n"+
+						"Please activate your email by clicking this link: "+url+"\n"+
+						"\n"+
+						"Thanks,\n"+
+						"The Tasker Team",
 				)
 
 				if err == nil {
@@ -71,7 +64,7 @@ func userRegister(res http.ResponseWriter, req *http.Request, sess db.Database) 
 					resp.Fail(err)
 				}
 			}
-		} else if err == nil{
+		} else if err == nil {
 			resp.Err = "User already exists."
 			resp.code = http.StatusPreconditionFailed
 		} else {
@@ -138,6 +131,15 @@ func userActivate(res http.ResponseWriter, req *http.Request, sess db.Database) 
 				session.Values["logged-in"] = true
 				session.Values["uid"] = uid
 				session.Save(req, res)
+
+				sendEmail(user.GetString("email"), "Tasker Account Activated",
+					"Your account has been activated!\n"+
+						"Go to "+baseURL+" to start using Tasker.\n"+
+						"\n"+
+						"Thanks,\n"+
+						"The Tasker Team",
+				)
+
 				resp.Succeed()
 			}
 		}
@@ -165,4 +167,15 @@ func makeValidationCode(email string, hashedPass []byte) string {
 	hash.Write(key)
 	code := base64.URLEncoding.EncodeToString(hash.Sum(nil))
 	return strings.TrimRight(code, "=")
+}
+
+func sendEmail(to string, subject, body string) error {
+	err := smtp.SendMail(
+		"smtp.gmail.com:25",
+		emailAuth,
+		"tasker@casualsuperman.com",
+		[]string{to},
+		[]byte("Subject: "+subject+"\n"+body),
+	)
+	return err
 }
