@@ -7,8 +7,8 @@ import (
 
 type apiUserResponse struct {
 	successful bool
-	err string `json:",omitempty"`
-	code int `json:"-"`
+	err        string `json:",omitempty"`
+	code       int    `json:"-"`
 }
 
 func (r apiUserResponse) Json() []byte {
@@ -32,7 +32,7 @@ func (r *apiUserResponse) Succeed() {
 func defaultUserResponse() apiUserResponse {
 	return apiUserResponse{
 		successful: false,
-		err: "",
-		code: 500,
+		err:        "",
+		code:       500,
 	}
 }
