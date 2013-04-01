@@ -9,6 +9,36 @@ import (
 	"net/http"
 )
 
+// Register a user by checking if their email is in the database. If it isn't,
+// the account is created and the activation email is sent.
+func userRegister(res http.ResponseWriter, req *http.Request, sess db.Database) apiResponse {
+	resp := defaultUserResponse()
+
+	email := req.Form.Get("email")
+	password := req.Form.Get("password")
+
+	if email != "" && password != "" {
+		users := sess.ExistentCollection("Users")
+		user, _ := users.Find(db.Cond{"email": email})
+
+		if user == nil {
+			hashedPass, err := bcrypt.GenerateFromPassword([]byte(password),
+				bcrypt.DefaultCost)
+
+			if err == nil {
+				_, err = users.Append(db.Item{"email": email, "password": hashedPass,
+					"activated": false})
+				if err == nil {
+					resp.Succeed()
+				} else {
+					resp.err = err.Error()
+				}
+			}
+		}
+	}
+	return resp
+}
+
 // Login a user by checking their email/password against the email and bcrypt'd
 // password in the database. If it is successful, the user gets a session.
 func userLogin(res http.ResponseWriter, req *http.Request, sess db.Database) apiResponse {
