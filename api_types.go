@@ -6,9 +6,9 @@ import (
 )
 
 type apiUserResponse struct {
-	successful bool
-	err        string `json:",omitempty"`
-	code       int    `json:"-"`
+	Successful bool   `json:"successful"`
+	Err        string `json:"err,omitempty"`
+	code       int
 }
 
 func (r apiUserResponse) Json() []byte {
@@ -25,14 +25,19 @@ func (r apiUserResponse) Code() int {
 }
 
 func (r *apiUserResponse) Succeed() {
-	r.successful = true
+	r.Successful = true
 	r.code = http.StatusOK
+}
+
+func (r *apiUserResponse) Fail(err error) {
+	r.code = http.StatusInternalServerError
+	r.Err = err.Error()
 }
 
 func defaultUserResponse() apiUserResponse {
 	return apiUserResponse{
-		successful: false,
-		err:        "",
+		Successful: false,
+		Err:        "",
 		code:       500,
 	}
 }

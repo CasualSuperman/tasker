@@ -1,12 +1,14 @@
 package main
 
 import (
-	"bytes"
 	"code.google.com/p/go.crypto/bcrypt"
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/base64"
 	"github.com/gosexy/db"
 	"net/http"
+	"net/smtp"
+	"strings"
 )
 
 // Register a user by checking if their email is in the database. If it isn't,
@@ -14,27 +16,70 @@ import (
 func userRegister(res http.ResponseWriter, req *http.Request, sess db.Database) apiResponse {
 	resp := defaultUserResponse()
 
-	email := req.Form.Get("email")
-	password := req.Form.Get("password")
+	email := req.FormValue("email")
+	password := req.FormValue("password")
 
+	// Only proceed if we were given both.
 	if email != "" && password != "" {
 		users := sess.ExistentCollection("Users")
-		user, _ := users.Find(db.Cond{"email": email})
+		num, err := users.Count(db.Cond{"email": email})
 
-		if user == nil {
-			hashedPass, err := bcrypt.GenerateFromPassword([]byte(password),
+		// Make sure there are no other users with that email
+		if num == 0 && err == nil {
+			// Encrypt their password
+			hashedPass, _ := bcrypt.GenerateFromPassword([]byte(password),
 				bcrypt.DefaultCost)
 
-			if err == nil {
-				_, err = users.Append(db.Item{"email": email, "password": hashedPass,
-					"activated": false})
+			// Add them to the database
+			_, err = users.Append(db.Item{
+				"email":     email,
+				"password":  hashedPass,
+				"activated": false,
+			})
+
+			if err != nil {
+				resp.Fail(err)
+			} else {
+				// Generate the activation email
+				url := baseURL + "api/user/activate?email=" + email +
+					"&validation=" + makeValidationCode(email, hashedPass)
+
+				println(url)
+
+				// Send the email
+				err = smtp.SendMail(
+					"smtp.gmail.com:25",
+					emailAuth,
+					"tasker@casualsuperman.com",
+					[]string{email},
+					[]byte(
+						"Welcome to tasker!\n" +
+						"\n" +
+						"Please activate your email by clicking this link: " + url + "\n" +
+						"\n" +
+						"Thanks,\n" +
+						"The Tasker Team"),
+				)
+
 				if err == nil {
 					resp.Succeed()
 				} else {
-					resp.err = err.Error()
+					// Remove the user if we couldn't send the email.
+					users.Remove(
+						db.Cond{"email": email},
+					)
+					resp.Fail(err)
 				}
 			}
+		} else if err == nil{
+			resp.Err = "User already exists."
+			resp.code = http.StatusPreconditionFailed
+		} else {
+			resp.Fail(err)
 		}
+	} else {
+		resp.Err = "Registration requires both a username and a password."
+		resp.code = http.StatusBadRequest
 	}
 	return resp
 }
@@ -44,7 +89,7 @@ func userRegister(res http.ResponseWriter, req *http.Request, sess db.Database) 
 func userLogin(res http.ResponseWriter, req *http.Request, sess db.Database) apiResponse {
 	resp := defaultUserResponse()
 
-	email := req.Form.Get("email")
+	email := req.FormValue("email")
 
 	if email != "" {
 		users := sess.ExistentCollection("Users")
@@ -53,7 +98,7 @@ func userLogin(res http.ResponseWriter, req *http.Request, sess db.Database) api
 		if user != nil && user.GetBool("activated") {
 			hashedPass := user.GetString("password")
 			err := bcrypt.CompareHashAndPassword([]byte(hashedPass),
-				[]byte(req.Form.Get("password")))
+				[]byte(req.FormValue("password")))
 
 			if err == nil {
 				session, _ := store.Get(req, "calendar")
@@ -73,20 +118,18 @@ func userLogin(res http.ResponseWriter, req *http.Request, sess db.Database) api
 func userActivate(res http.ResponseWriter, req *http.Request, sess db.Database) apiResponse {
 	resp := defaultUserResponse()
 
-	validation := req.Form.Get("validation")
-	email := req.Form.Get("email")
+	validation := req.FormValue("validation")
+	email := req.FormValue("email")
 
 	if email != "" {
 		users := sess.ExistentCollection("Users")
 		user, _ := users.Find(db.Cond{"email": email})
 
-		if user != nil && user.GetBool("activated") {
+		if user != nil && !user.GetBool("activated") {
 			uid := user.GetInt("uid")
 			hashedPass := user.GetString("password")
-			key := makeKey(email, hashedPass, uid)
-			hash := hmac.New(sha256.New, encKey)
-			result := hash.Sum(key)
-			if bytes.Equal(result, []byte(validation)) {
+			result := makeValidationCode(email, []byte(hashedPass))
+			if result == validation {
 				users.Update(
 					db.Set{"activated": true},
 					db.Cond{"uid": uid},
@@ -104,15 +147,22 @@ func userActivate(res http.ResponseWriter, req *http.Request, sess db.Database) 
 
 // Using these components of a user in our db, generate a consistent string
 // while not revealing important data.
-func makeKey(email, hashedPass string, uid int64) []byte {
+func makeKey(email, hashedPass string) []byte {
 	bEmail := []byte(email)
 	bHashedPass := []byte(hashedPass)
 	key := make([]byte, 0)
 
-	key = append(key, bEmail[:len(bEmail)/2]...)
-	key = append(key, bHashedPass[len(bHashedPass)/3:]...)
-	key = append(key, byte(uid))
-	key = append(key, bHashedPass[:len(bHashedPass)/3]...)
 	key = append(key, bEmail[len(bEmail)/2:]...)
+	key = append(key, bHashedPass[len(bHashedPass)/3:]...)
+	key = append(key, bEmail[:len(bEmail)/2]...)
+	key = append(key, bHashedPass[:2*len(bHashedPass)/3]...)
 	return key
+}
+
+func makeValidationCode(email string, hashedPass []byte) string {
+	key := makeKey(email, string(hashedPass))
+	hash := hmac.New(sha256.New, encKey)
+	hash.Write(key)
+	code := base64.URLEncoding.EncodeToString(hash.Sum(nil))
+	return strings.TrimRight(code, "=")
 }

@@ -6,6 +6,8 @@ import (
 	"net/http"
 )
 
+const baseURL = "http://tasker.casualsuperman.com/"
+
 // Set up secure cookie storage. This byte string is a secret key used to
 // authenticate a cookie.
 var store = sessions.NewCookieStore(cookieStoreKeys...)
@@ -20,6 +22,7 @@ type handlerFunc func(http.ResponseWriter, *http.Request, db.Database) apiRespon
 
 // A map of url handlers
 var handlers = map[string]handlerFunc{
+	"user/register": userRegister,
 	"user/login":    userLogin,
 	"user/activate": userActivate,
 }
