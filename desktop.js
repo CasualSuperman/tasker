@@ -35,10 +35,7 @@
 		firstVisibleDate.setDate(1);
 		firstVisibleDate.setDate(1 - firstVisibleDate.getDay());
 
-		var lastVisibleDate = new Date(date);
-		lastVisibleDate.setDate(0);
-		lastVisibleDate.setMonth(lastVisibleDate.getMonth() + 2);
-		lastVisibleDate.setDate(0);
+		var lastVisibleDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
 		var iterDate = new Date(firstVisibleDate);
 		iterDate.setHours(0);
