@@ -7,6 +7,8 @@ CREATE TABLE Users (
 	password CHAR(60) BINARY,
 	# RFC 5321 specifies that emails have a maximum length of 255
 	email VARCHAR(255),
+	# What this user wants others to identify them as
+	displayName VARCHAR(100),
 	activated BOOLEAN
 );
 
