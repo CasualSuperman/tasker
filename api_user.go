@@ -5,11 +5,32 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"github.com/gosexy/db"
 	"net/http"
 	"net/smtp"
 	"strings"
 )
+
+// Give info about the logged in user if they are logged in
+func userInfo(res http.ResponseWriter, req *http.Request, sess db.Database) apiResponse {
+	session, _ := store.Get(req, "calendar")
+
+	if val, ok := session.Values["logged-in"]; ok && val.(bool) {
+		uid := int(session.Values["uid"].(int64))
+		users := sess.ExistentCollection("Users")
+		user, err := users.Find(db.Cond{"uid": uid})
+
+		if user != nil && err == nil {
+			res.Header().Add("content-type", "text/plain")
+			res.WriteHeader(http.StatusOK)
+			data, _ := json.Marshal(user)
+			res.Write(data)
+			return nil
+		}
+	}
+	return defaultUserResponse()
+}
 
 // Register a user by checking if their email is in the database. If it isn't,
 // the account is created and the activation email is sent.
@@ -102,6 +123,20 @@ func userLogin(res http.ResponseWriter, req *http.Request, sess db.Database) api
 			}
 		}
 	}
+	return resp
+}
+
+// Checks if the request has a session associated with it, and deletes login
+// info from the session if there is. Always returns success.
+func userLogout(res http.ResponseWriter, req *http.Request, sess db.Database) apiResponse {
+	resp := defaultUserResponse()
+	session, isNew := store.Get(req, "calendar")
+	if isNew == nil {
+		delete(session.Values, "logged-in")
+		delete(session.Values, "uid")
+		session.Save(req, res)
+	}
+	resp.Succeed()
 	return resp
 }
 

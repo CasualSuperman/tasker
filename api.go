@@ -23,8 +23,10 @@ type handlerFunc func(http.ResponseWriter, *http.Request, db.Database) apiRespon
 // A map of url handlers
 var handlers = map[string]handlerFunc{
 	"user/register": userRegister,
-	"user/login":    userLogin,
 	"user/activate": userActivate,
+	"user/login":    userLogin,
+	"user/logout":   userLogout,
+	"user/info":     userInfo,
 }
 
 // This runs our API server. We take a database connection so we could
@@ -37,9 +39,11 @@ func runApiServer(sess db.Database) {
 		handler, ok := handlers[req.URL.Path[len("/api/"):]]
 		if ok {
 			resp := handler(res, req, sess)
-			res.Header().Add("content-type", resp.Type())
-			res.WriteHeader(resp.Code())
-			res.Write(resp.Json())
+			if resp != nil {
+				res.Header().Add("content-type", resp.Type())
+				res.WriteHeader(resp.Code())
+				res.Write(resp.Json())
+			}
 		} else {
 			res.WriteHeader(http.StatusNotImplemented)
 		}
