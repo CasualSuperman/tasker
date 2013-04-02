@@ -1,0 +1,83 @@
+body {
+	font-family: "Segoe UI", "Open Sans", Verdana, Arial, sans-serif;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	text-align: center;
+}
+body * {
+	margin: 0;
+	padding: 0;
+	text-align: left;
+}
+#container {
+ 	height: 100%;
+	position: absolute;
+	width: 100%;
+}
+#name {
+ 	bottom: 15%;
+ 	color: #f3f3f3;
+	font-size: 20.5em;
+ 	right: 30px;
+	overflow: hidden;
+	position: absolute;
+ 	text-shadow: #f3f3f3 0 0 1px;
+	width: 65%;
+	z-index: -3;
+}
+#year {
+ 	bottom: 0;
+ 	color: #f3f3f3;
+	font-size: 12.5em;
+ 	left: 5%;
+	overflow: hidden;
+	position: absolute;
+ 	text-shadow: #f3f3f3 0 0 1px;
+	width: 95%;
+	z-index: -3;
+}
+#month {
+	border-spacing: 0;
+	height: 100%;
+	padding-right: 300px;
+	table-layout: fixed;
+	width: 100%;
+	z-index: 2;
+}
+#month td, #month th {
+	border-right: 1px solid #ddd;
+	color: #888;
+	text-align: right;
+}
+#month th {
+	color: #ddd;
+	font-weight: normal;
+	height: 2em;
+	padding: 0 1%;
+	vertical-align: bottom;
+}
+#month td {
+	border-top: 1px solid #ddd;
+	padding: 1%;
+	vertical-align: top;
+}
+#month .sideMonth {
+	color: #ddd;
+}
+#month td {
+	color: black;
+}
+#month .today {
+	border-right-color: #09f;
+	color: #09f;
+}
+#controls {
+	background-color: white;
+	border-left: 1px solid #ddd;
+	height: 100%;
+	position: absolute;
+	right: 0;
+	width: 300px;
+	z-index: 1;
+}
