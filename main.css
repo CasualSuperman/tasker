@@ -1,5 +1,5 @@
 body {
-	font-family: "Segoe UI"/*, Tahoma, "Lucida Grande"*/;
+	font-family: "Segoe UI", "Open Sans", Verdana, Arial, sans-serif;
 	height: 100%;
 	margin: 0;
 	padding: 0;
@@ -16,10 +16,10 @@ body * {
 	width: 100%;
 }
 #name {
- 	bottom: 10%;
+ 	bottom: 15%;
  	color: #f3f3f3;
 	font-size: 20.5em;
- 	left: 35%;
+ 	right: 30px;
 	overflow: hidden;
 	position: absolute;
  	text-shadow: #f3f3f3 0 0 1px;
