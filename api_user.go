@@ -132,7 +132,7 @@ func userActivate(res http.ResponseWriter, req *http.Request, sess db.Database) 
 				session.Values["uid"] = uid
 				session.Save(req, res)
 
-				sendEmail(user.GetString("email"), "Tasker Account Activated",
+				sendEmail(user.GetString("email"), "Tasker Account Activation",
 					"Your account has been activated!\n"+
 						"Go to "+baseURL+" to start using Tasker.\n"+
 						"\n"+
