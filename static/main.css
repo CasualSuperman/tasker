@@ -19,11 +19,11 @@ body * {
  	bottom: 15%;
  	color: #f3f3f3;
 	font-size: 20.5em;
- 	right: 30px;
+	margin-right: 300px;
 	overflow: hidden;
 	position: absolute;
+ 	right: 30px;
  	text-shadow: #f3f3f3 0 0 1px;
-	width: 65%;
 	z-index: -3;
 }
 #year {
