@@ -77,6 +77,7 @@ func userRegister(res http.ResponseWriter, req *http.Request, sess db.Database) 
 
 				if err == nil {
 					resp.Succeed()
+					resp.code = http.StatusCreated
 				} else {
 					// Remove the user if we couldn't send the email.
 					users.Remove(

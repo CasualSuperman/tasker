@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 )
 
 type apiUserResponse struct {
@@ -40,4 +41,23 @@ func defaultUserResponse() apiUserResponse {
 		Err:        "",
 		code:       500,
 	}
+}
+
+type eventsList struct {
+	Events []Event      `json:"events"`
+	StartDate time.Time `json:"startDate"`
+	EndDate time.Time   `json:"endDate"`
+}
+
+func (e *eventsList) Json() []byte {
+	data, _ := json.Marshal(e)
+	return data
+}
+
+func (e *eventsList) Type() string {
+	return "text/plain"
+}
+
+func (e *eventsList) Code() int {
+	return http.StatusOK
 }
