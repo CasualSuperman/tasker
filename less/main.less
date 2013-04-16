@@ -1,0 +1,111 @@
+@darkgrey: #888;
+@grey: #ddd;
+@lightgrey: #f3f3f3;
+
+body {
+	font-family: "Segoe UI", "Open Sans", Verdana, Arial, sans-serif;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	text-align: center;
+
+	* {
+		margin: 0;
+		padding: 0;
+		text-align: left;
+	}
+}
+#container {
+ 	height: 100%;
+	position: absolute;
+	width: 100%;
+}
+#name {
+ 	bottom: 15%;
+ 	color: @lightgrey;
+	font-size: 20.5em;
+	margin-right: 300px;
+	overflow: hidden;
+	position: absolute;
+ 	right: 30px;
+ 	text-shadow: @lightgrey 0 0 1px;
+	z-index: -3;
+}
+#year {
+ 	bottom: 0;
+ 	color: @lightgrey;
+	font-size: 12.5em;
+ 	left: 5%;
+	overflow: hidden;
+	position: absolute;
+ 	text-shadow: @lightgrey 0 0 1px;
+	width: 95%;
+	z-index: -3;
+}
+#month {
+	border-spacing: 0;
+	height: 100%;
+	padding-right: 300px;
+	table-layout: fixed;
+	width: 100%;
+	z-index: 2;
+
+	.today {
+		border-right-color: #09f;
+		color: #09f;
+	}
+
+	.sideMonth {
+		color: @grey;
+	}
+
+	td, th {
+		border-right: 1px solid @grey;
+		color: #888;
+		text-align: right;
+	}
+
+	td {
+		border-top: 1px solid @grey;
+		color: black;
+		padding: 1%;
+		vertical-align: top;
+	}
+
+	th {
+		color: @grey;
+		font-weight: normal;
+		height: 2em;
+		padding: 0 1%;
+		vertical-align: bottom;
+	}
+}
+#controls {
+	background-color: white;
+	border-left: 1px solid @grey;
+	color: @darkgrey;
+	height: 100%;
+	position: absolute;
+	right: 0;
+	width: 300px;
+	z-index: 1;
+
+	#navigation {
+		bottom: 0;
+		position: absolute;
+		width: 100%;
+
+		#prev, #next {
+			cursor: pointer;
+			margin: 0 5px;
+		}
+
+		#prev {
+			float: left;
+		}
+
+		#next {
+			float: right;
+		}
+	}
+}
