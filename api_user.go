@@ -29,7 +29,7 @@ func userInfo(res http.ResponseWriter, req *http.Request, sess db.Database) apiR
 			return nil
 		}
 	}
-	return defaultUserResponse()
+	return apiUserResponse{false, "", http.StatusOK}
 }
 
 // Register a user by checking if their email is in the database. If it isn't,
