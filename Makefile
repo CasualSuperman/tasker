@@ -5,7 +5,7 @@ static/main.css: less/main.less
 
 js: base.js desktop.js mobile.js
 
-base.js: js/main.js
+base.js: js/main.js js/api.js
 	@echo "main.js"
 	@closure --js $^ > static/main.js
 
