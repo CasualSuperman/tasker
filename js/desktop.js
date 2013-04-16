@@ -20,6 +20,7 @@
 			calendar = $("<table />", {'id':'month'}),
 			month = $("<div />", {'id':'name'}),
 			year = $("<div />", {'id':'year'}),
+			cont = $(container),
 			row = $("<tr />");
 
 		dayNames.forEach(function(day) {
@@ -43,8 +44,6 @@
 		iterDate.setSeconds(0);
 		iterDate.setMilliseconds(0);
 
-		console.log(firstVisibleDate, lastVisibleDate, iterDate);
-
 		// We quit when we pass the last day of the month and it is a Sunday.
 		while (iterDate < lastVisibleDate || iterDate.getDay() != 0) {
 			// On the first day of the week, start a new row.
@@ -67,12 +66,17 @@
 			iterDate.setDate(iterDate.getDate() + 1);
 		}
 
-		$(container).empty().append(fragment);
+		cont.empty().append(fragment);
 
 		var cal = $(calendar), mon = $(month);
 
 		if (mon.width() > (cal.width() - 60)) {
-			mon.css("font-size", mon.css("font-size").replace("px","") / (mon.width() / (cal.width() - 60)) + "px");
+			var currentSize = mon.css("font-size").replace("px","");
+			var scaleFontRatio = (mon.width() / (cal.width() - 60));
+			var scalePosRatio = (mon.width() / (cal.width()));
+			var newSize = currentSize / scaleFontRatio;
+			mon.css("font-size",  newSize + "px");
+			mon.css("bottom", scalePosRatio * cont.height() * mon.css("bottom").replace("%", "") / 100 + "px");
 		}
 
 		var changeMonth = function(e) {
