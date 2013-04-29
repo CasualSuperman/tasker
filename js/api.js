@@ -1,4 +1,5 @@
 (function(global) {
+	"use strict";
 	function API(server) {
 		this.server = server;
 	};
@@ -10,7 +11,7 @@
 			url: this.server + "user/info",
 			dataType: "json"
 		}).done(function(data) {
-			if (data.successful === false) {
+			if (data.success === false) {
 				cb(false);
 			} else {
 				cb(true);

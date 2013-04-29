@@ -1,4 +1,5 @@
 (function(global) {
+	"use strict";
 	function Calendar(apiServer) {
 		var now = new Date();
 		var thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -13,6 +14,7 @@
 		// Find out if we are logged in.
 		apiServer.getLoggedIn(function(loggedIn) {
 			_this.loggedIn = loggedIn;
+			_this.setupDone = true;
 
 			// Make sure we don't have any buffered calls to loggedIn.
 			for (var i = 0; i < _this.apiBuffer.length; i++) {
@@ -24,24 +26,27 @@
 			}
 		});
 
-		function login(data, cb) {
-			apiServer.login(data, function(resp) {
-				if (resp.successful) {
-					_this.loggedIn = true;
-				}
-				cb(resp.successful);	
-			});
-		}
-
-		function logout(cb) {
-			apiServer.logout(function(data) {
-				if (data.successful) {
-					_this.loggedIn = false;
-				}
-				cb(data.successful);
-			});
-		}
 	}
+
+	Calendar.prototype.login = function(data, cb) {
+		var _this = this;
+		apiServer.login(data, function(resp) {
+			if (resp.success) {
+				_this.loggedIn = true;
+			}
+			cb(resp);	
+		});
+	};
+
+	Calendar.prototype.logout = function(cb) {
+		var _this = this;
+		apiServer.logout(function(data) {
+			if (data.success) {
+				_this.loggedIn = false;
+			}
+			cb(data);
+		});
+	};
 
 	Calendar.prototype.getLoggedIn = function(cb) {
 		if (this.setupDone) {

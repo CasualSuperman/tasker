@@ -7,7 +7,7 @@ import (
 )
 
 type apiUserResponse struct {
-	Successful bool   `json:"successful"`
+	Successful bool   `json:"success"`
 	Err        string `json:"err,omitempty"`
 	code       int
 }

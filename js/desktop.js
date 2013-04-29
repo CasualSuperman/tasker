@@ -1,4 +1,5 @@
 (function(global) {
+	"use strict";
 	function DesktopUI(root, calendar) {
 		this.model = calendar;
 		
@@ -42,6 +43,58 @@
 		});
 	};
 
+	DesktopUI.prototype.displayLoginForm = function() {
+		var _this = this;
+		$(_this.overlay.firstChild).load("templates/desktop/login.htm", function() {
+			$("input.submit", _this.overlay).click(function() {
+				_this.model.login($("form", _this.overlay).serialize(), function(resp) {
+					if (resp.success) {
+						$(_this.overlay).fadeOut(_this.clearOverlay);
+						$(_this.controls).addClass("loggedIn");
+					} else {
+						$("input[type=password]", _this.overlay).val("");
+						$(".err", _this.overlay).text(resp.err);
+					}
+				});
+			});
+			$(_this.overlay).fadeIn();
+		});
+	};
+
+	DesktopUI.prototype.showConfirmation = function(text, words, cb) {
+		if (cb === undefined) {
+			cb = words;
+			words = undefined;
+		}
+		var _this = this;
+		$(_this.overlay.firstChild).load("templates/desktop/confirm.htm", function() {
+			$(_this.overlay).fadeIn();
+			if (words !== undefined) {
+				$(".ok", _this.overlay).val(words[0]);
+				$(".cancel", _this.overlay).val(words[1]);
+			}
+			var resp = false;
+			$("h1", _this.overlay).text(text);
+			$(".ok", _this.overlay).click(function() {
+				resp = true;
+				respond();
+			});
+			$(".cancel", _this.overlay).click(function() {
+				resp = false;
+				respond();
+			});
+
+			function respond() {
+				$(_this.overlay).fadeOut(_this.clearOverlay);
+				cb(resp);
+			}
+		});
+	};
+
+	DesktopUI.prototype.clearOverlay = function() {
+		$(this.firstChild).empty();
+	};
+
 	global.DesktopUI = DesktopUI;
 
 	var monthNames = ["January","February","March","April","May","June",
@@ -70,6 +123,21 @@
 			$("#navigation .right", this).click(function() {
 				nextMonth(ui);
 			});
+			$("#loginIndicator", this).click(function() {
+				model.getLoggedIn(function(loggedIn) {
+					if (loggedIn) {
+						ui.showConfirmation("Really logout?", ["Logout", "Cancel"], function(doLogout) {
+							if (doLogout) {
+								model.logout(function() {
+									$(root).removeClass("loggedIn");
+								});
+							}
+						});
+					} else {
+						ui.displayLoginForm();
+					}
+				});
+			});
 		});
 	}
 
@@ -93,6 +161,11 @@
 	function initOverlay(ui, root) {
 		root.appendChild(document.createElement("div"));
 		root.firstChild.className = "content";
+		$(root).click(function(e) {
+			if (e.target === root) {
+				$(this).fadeOut();
+			}
+		});
 	}
 
 	function nextMonth(ui) {
@@ -191,12 +264,4 @@
 		// Fix it again when the window is resized.
 		$(window).on("resize.month", fixFont);
 	};
-
-	//global.DesktopViews = {
-	//	init: function(ui) {
-	//		ui.registerView("day",   displayDay);
-	//		ui.registerView("month", displayMonth);
-	//		ui.registerView("year",  displayYear);
-	//	}
-	//}
 })(window);

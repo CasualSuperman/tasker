@@ -121,7 +121,13 @@ func userLogin(res http.ResponseWriter, req *http.Request, sess db.Database) api
 				session.Values["uid"] = user.GetInt("uid")
 				session.Save(req, res)
 				resp.Succeed()
+			} else {
+				resp.code = 200
+				resp.Err = "Incorrect email or password."
 			}
+		} else {
+			resp.code = 200
+			resp.Err = "Account not activated."
 		}
 	}
 	return resp
