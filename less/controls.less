@@ -1,0 +1,43 @@
+@import "color";
+
+#controls {
+	background-color: white;
+	color: @darkgrey;
+	font-size: 1.8em;
+	height: 100%;
+	position: absolute;
+	right: 0;
+	width: 300px;
+	z-index: 1;
+
+	& #loginIndicator {
+		float: right;
+	}
+
+	&.loggedIn #loginIndicator {
+		color: @accent;
+	}
+
+	#navigation {
+		bottom: 0;
+		position: absolute;
+		width: 100%;
+
+		.left, .right {
+			cursor: pointer;
+			margin: 0 5px;
+
+			&:hover {
+				color: @accent;
+			}
+		}
+
+		.left {
+			float: left;
+		}
+
+		.right {
+			float: right;
+		}
+	}
+}

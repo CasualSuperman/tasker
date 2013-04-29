@@ -1,6 +1,4 @@
-@darkgrey: #888;
-@grey: #ddd;
-@lightgrey: #f3f3f3;
+@import "color";
 
 body {
 	font-family: "Segoe UI", "Open Sans", Verdana, Arial, sans-serif;
@@ -15,11 +13,13 @@ body {
 		text-align: left;
 	}
 }
+
 #container {
  	height: 100%;
 	position: absolute;
 	width: 100%;
 }
+
 #name {
  	bottom: 15%;
  	color: @lightgrey;
@@ -31,6 +31,7 @@ body {
  	text-shadow: @lightgrey 0 0 1px;
 	z-index: -3;
 }
+
 #year {
  	bottom: 0;
  	color: @lightgrey;
@@ -42,6 +43,7 @@ body {
 	width: 95%;
 	z-index: -3;
 }
+
 #month {
 	border-spacing: 0;
 	height: 100%;
@@ -51,8 +53,8 @@ body {
 	z-index: 2;
 
 	.today {
-		border-right-color: #09f;
-		color: #09f;
+		border-color: @accent;
+		color: @accent;
 	}
 
 	.sideMonth {
@@ -80,48 +82,4 @@ body {
 		vertical-align: bottom;
 	}
 }
-#controls {
-	background-color: white;
-	border-left: 1px solid @grey;
-	color: @darkgrey;
-	height: 100%;
-	position: absolute;
-	right: 0;
-	width: 300px;
-	z-index: 1;
 
-	#user {
-		width: 100%;
-
-		.user {
-			float: right;
-		}
-
-		.loginForm {
-			margin: 10px;
-		}
-
-		button {
-			display: block;
-		}
-	}
-
-	#navigation {
-		bottom: 0;
-		position: absolute;
-		width: 100%;
-
-		#prev, #next {
-			cursor: pointer;
-			margin: 0 5px;
-		}
-
-		#prev {
-			float: left;
-		}
-
-		#next {
-			float: right;
-		}
-	}
-}

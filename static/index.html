@@ -8,20 +8,25 @@
 	<script src="/html5/fixes/html5.js" type="text/javascript"></script>
 	<![endif]-->
 	<link rel="stylesheet" href="main.css" />
+	<link rel="stylesheet" href="typicons.css" />
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js">
 	// jQuery 1.9.1
 	</script>
 </head>
 <body>
-<div id="main">
-	<div id="container"></div>
-	<div id="controls"></div>
-</div>
 <script src="main.js"></script>
 <script src="desktop.js"></script>
 <script>
-Calendar.setView("month");
-Calendar.display();
+var apiServer = new API("http://tasker.casualsuperman.com/api/");
+var cal = new Calendar(apiServer);
+var ui = new DesktopUI(document.body, cal);
+
+//var ui = new UI(document.getElementById("container"),
+//				document.getElementById("controls"),
+//				document.getElementById("overlay"));
+//
+//DesktopViews.init(ui);
+
 </script>
 </body>
 </html>

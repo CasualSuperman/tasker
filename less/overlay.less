@@ -1,0 +1,24 @@
+@import "color";
+
+#overlay {
+	-ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000)";
+	background-color: rgba(0, 0, 0, 0.6);
+	bottom: 0;
+	display: none;
+	left: 0;
+	position: absolute;
+	right: 0;
+	top: 0;
+	z-index: 5;
+
+	.content {
+		background-color: white;
+		left: 50%;
+		margin-left: -150px;
+		padding: 10px;
+		position: absolute;
+		top: 30%;
+		width: 300px;
+		z-index: 6;
+	}
+}

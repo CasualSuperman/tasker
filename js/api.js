@@ -10,7 +10,6 @@
 			url: this.server + "user/info",
 			dataType: "json"
 		}).done(function(data) {
-			console.log(data);
 			if (data.successful === false) {
 				cb(false);
 			} else {
@@ -19,7 +18,6 @@
 		});
 	};
 	API.prototype.login = function(formData, cb) {
-		console.log(formData);
 		$.ajax({
 			url: this.server + "user/login?" + formData,
 			dataType: "json"
@@ -32,10 +30,5 @@
 		}).done(cb);
 	};
 
-
-	global.API = {
-		init: function(server) {
-			global.API = new API(server);
-		}
-	};
+	global.API = API;
 })(window);

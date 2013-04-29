@@ -1,4 +1,49 @@
-(function(Calendar) {
+(function(global) {
+	function DesktopUI(root, calendar) {
+		this.model = calendar;
+		
+		var components = document.createDocumentFragment();
+
+		this.overlay = document.createElement("div");
+		this.container = document.createElement("div");
+		this.controls = document.createElement("div");
+
+		this.overlay.id = "overlay";
+		this.container.id = "container";
+		this.controls.id = "controls";
+
+		this.transitioning = false;
+
+		root.appendChild(this.overlay);
+		root.appendChild(this.container);
+		root.appendChild(this.controls);
+
+		initControls(this, calendar, this.controls);
+		initContainer(this, this.container);
+		initOverlay(this, this.overlay);
+
+		displayMonth(this.container, this);
+		displayControls(calendar, this.controls);
+	}
+
+	var fadeDuration = 300, // 300ms
+		pauseDuration = fadeDuration / 2; // Make the UI pause for half that
+										  //when waiting for anims to complete.
+
+	DesktopUI.prototype.updateDisplay = function() {
+		var _this = this;
+		this.transitioning = true;
+		$(this.container).fadeOut(fadeDuration, function() {
+			displayMonth(_this.container, _this);
+			$(this).fadeIn(fadeDuration)
+			setTimeout(function() {
+				_this.transitioning = false;
+			}, pauseDuration);
+		});
+	};
+
+	global.DesktopUI = DesktopUI;
+
 	var monthNames = ["January","February","March","April","May","June",
 			"July","August","September","October","November","December"],
 		dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday",
@@ -11,17 +56,66 @@
 		return str;
 	}
 
-	function displayDay(container, controls, date) {
+	function initControls(ui, model, root) {
+		model.getLoggedIn(function(loggedIn) {
+			if (loggedIn) {
+				$(root).addClass("loggedIn");
+			}
+		});
 
+		$(root).load("templates/desktop/controls.htm", function() {
+			$("#navigation .left", this).click(function() {
+				prevMonth(ui);
+			});
+			$("#navigation .right", this).click(function() {
+				nextMonth(ui);
+			});
+		});
 	}
 
-	function displayMonth(container, controls, date) {
+	function initContainer(ui, root) {
+		var changeMonth = function(e) {
+			e = e.originalEvent;
+			if (e.wheelDelta > 0) {
+				prevMonth(ui);
+			} else if (e.wheelDelta < 0) {
+				nextMonth(ui);
+			}
+		};
+
+		$(root).bind("mousewheel", function(e) {
+			if (!ui.transitioning) {
+				changeMonth(e);
+			}
+		});
+	}
+
+	function initOverlay(ui, root) {
+		root.appendChild(document.createElement("div"));
+		root.firstChild.className = "content";
+	}
+
+	function nextMonth(ui) {
+		ui.model.nextMonth();
+		ui.updateDisplay();
+	}
+
+	function prevMonth(ui) {
+		ui.model.prevMonth();
+		ui.updateDisplay();
+	}
+
+	function displayControls(cal, root) {
+	}
+
+	function displayMonth(root, ui) {
 		var fragment = document.createDocumentFragment(),
 			calendar = $("<table />", {'id':'month'}),
 			month = $("<div />", {'id':'name'}),
 			year = $("<div />", {'id':'year'}),
-			cont = $(container),
-			row = $("<tr />");
+			cont = $(root),
+			row = $("<tr />"),
+			date = ui.model.getDate();
 
 		dayNames.forEach(function(day) {
 			row.append($("<th />").text(day.toLowerCase()));
@@ -45,7 +139,7 @@
 		iterDate.setMilliseconds(0);
 
 		// We quit when we pass the last day of the month and it is a Sunday.
-		while (iterDate < lastVisibleDate || iterDate.getDay() != 0) {
+		while (iterDate < lastVisibleDate || iterDate.getDay() !== 0) {
 			// On the first day of the week, start a new row.
 			if (iterDate.getDay() === 0) {
 				row = $("<tr />");
@@ -66,53 +160,43 @@
 			iterDate.setDate(iterDate.getDate() + 1);
 		}
 
+		// Remove the event handler when we're gone for efficiency.
+		$(window).off("resize.month");
 		cont.empty().append(fragment);
 
 		var cal = $(calendar), mon = $(month);
 
-		if (mon.width() > (cal.width() - 60)) {
-			var currentSize = mon.css("font-size").replace("px","");
-			var scaleFontRatio = (mon.width() / (cal.width() - 60));
-			var scalePosRatio = (mon.width() / (cal.width()));
-			var newSize = currentSize / scaleFontRatio;
-			mon.css("font-size",  newSize + "px");
-			mon.css("bottom", scalePosRatio * cont.height() * mon.css("bottom").replace("%", "") / 100 + "px");
-		}
+		var defaultFontSize = mon.css("font-size").replace("px", "");
 
-		var changeMonth = function(e) {
-			e = e.originalEvent;
-			if (e.wheelDelta > 0) {
-				var newDate = new Date(date);
-				newDate.setMonth(newDate.getMonth() - 1);
-				Calendar.setDate(newDate);
-				Calendar.display();
-			} else if (e.wheelDelta < 0) {
-				var newDate = new Date(date);
-				newDate.setMonth(newDate.getMonth() + 1);
-				Calendar.setDate(newDate);
-				Calendar.display();
+		var fixFont = function() {
+			var currentSize = mon.css("font-size").replace("px","");
+			if (mon.width() > (cal.width() - 60)) {
+				var scaleFontRatio = (mon.width() / (cal.width() - 60));
+				var scalePosRatio = (mon.width() / (cal.width()));
+				var newSize = currentSize / scaleFontRatio;
+				mon.css("font-size",  newSize + "px");
+				mon.css("bottom", scalePosRatio * cont.height() * mon.css("bottom").replace("%", "") / 100 + "px");
+			} else if (defaultFontSize > currentSize) {
+				mon.css("font-size", defaultFontSize + "px");
+				fixFont();
 			}
 		};
 
-		var nextMonth = function() {
-			changeMonth({originalEvent:{wheelDelta:-1}});
-		};
+		// Fix the font's size while we fade in.
+		var fixFontInterval = setInterval(fixFont, 10);
+		setTimeout(function() {
+			clearInterval(fixFontInterval);
+		}, 200);
 
-		var prevMonth = function() {
-			changeMonth({originalEvent:{wheelDelta:1}});
-		};
-
-		$("#prev", controls).unbind("click").click(prevMonth);
-		$("#next", controls).unbind("click").click(nextMonth);
-
-		calendar.bind("mousewheel", changeMonth);
+		// Fix it again when the window is resized.
+		$(window).on("resize.month", fixFont);
 	};
 
-	function displayYear(container, controls, date) {
-
-	}
-
-	Calendar.registerView("day",   displayDay);
-	Calendar.registerView("month", displayMonth);
-	Calendar.registerView("year",  displayYear);
-})(Calendar);
+	//global.DesktopViews = {
+	//	init: function(ui) {
+	//		ui.registerView("day",   displayDay);
+	//		ui.registerView("month", displayMonth);
+	//		ui.registerView("year",  displayYear);
+	//	}
+	//}
+})(window);
