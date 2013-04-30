@@ -125,9 +125,12 @@ func userLogin(res http.ResponseWriter, req *http.Request, sess db.Database) api
 				resp.code = 200
 				resp.Err = "Incorrect email or password."
 			}
-		} else {
+		} else if user.GetBool("activated") == false {
 			resp.code = 200
 			resp.Err = "Account not activated."
+		} else {
+			resp.code = 200
+			resp.Err = "Incorrect email or password."
 		}
 	}
 	return resp
@@ -181,6 +184,12 @@ func userActivate(res http.ResponseWriter, req *http.Request, sess db.Database) 
 						"Thanks,\n"+
 						"The Tasker Team",
 				)
+
+				calendars := sess.ExistentCollection("Calendars")
+				calendars.Append(map[string]interface{}{
+					"owner": uid,
+					"name": "Your Calendar",
+				})
 
 				resp.Succeed()
 			}
