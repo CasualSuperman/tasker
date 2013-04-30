@@ -21,6 +21,7 @@ func eventsInRange(res http.ResponseWriter, req *http.Request, sess db.Database)
 		eventResults, err := eventTable.FindAll(db.Cond{"creator": uid})
 
 		events := make([]Event, len(eventResults))
+		eventsInRange := make([]Event, 0)
 
 		if err == nil {
 			for i, event := range eventResults {
@@ -36,12 +37,18 @@ func eventsInRange(res http.ResponseWriter, req *http.Request, sess db.Database)
 
 				for ok {
 					e, ok = <-eventChan
+					if ok {
+						eventsInRange = append(eventsInRange, e)
+					}
 					fmt.Println(e)
 				}
 			}
 		}
-
-		fmt.Printf("%+v\n", events)
+		return &eventsList{
+			eventsInRange,
+			time.Date(2013, time.April, 1, 0, 0, 0, 0, defaultLocation),
+			time.Date(2013, time.May, 1, 0, 0, 0, 0, defaultLocation),
+		}
 	}
 	return &eventsList{
 		[]Event{},

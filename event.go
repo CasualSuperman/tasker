@@ -92,7 +92,7 @@ func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
 				for startDate.Before(start) {
 					startDate = startDate.AddDate(0, 0, e.repeatFrequency * 7)
 				}
-				fmt.Println("Made it to the first matching timespan.")
+				// Made it to the first matching timespan.
 				// Back it up because we went too far.
 				startDate = startDate.AddDate(0, 0, e.repeatFrequency * -7)
 
@@ -111,16 +111,16 @@ func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
 					}
 				}
 
-				fmt.Println("Found the first potential match.")
+				// Found the first potential match.
 
 				for startDate.Before(end) {
-					fmt.Println("Sending a match.")
+					// Sending a match.
 					eventInstance := *e
 					eventInstance.StartTime = startDate
 
 					resp <- eventInstance
 
-					fmt.Println("Adding for the next match.")
+					// Adding for the next match.
 
 					startDate = startDate.AddDate(0, 0, skips[skipsIndex])
 
@@ -129,7 +129,7 @@ func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
 						skipsIndex = 0
 					}
 				}
-				fmt.Println("Made it past the last match.")
+				// Made it past the last match.
 			}
 	}
 	close(resp)
