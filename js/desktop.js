@@ -212,7 +212,7 @@
 		iterDate.setMilliseconds(0);
 
 		// We quit when we pass the last day of the month and it is a Sunday.
-		while (iterDate < lastVisibleDate || iterDate.getDay() !== 0) {
+		while (iterDate <= lastVisibleDate || iterDate.getDay() !== 0) {
 			// On the first day of the week, start a new row.
 			if (iterDate.getDay() === 0) {
 				row = $("<tr />");
