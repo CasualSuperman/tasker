@@ -49,6 +49,7 @@ func (e *Event) Parse(entry db.Item) {
 		e.repeatUntil, _ = time.Parse(dateFormat, entry.GetString("repeatuntil"))
 		e.days = uint8(entry.GetInt("days"))
 		e.fullWeek = entry.GetBool("fullweek")
+		e.repeatUntil = e.repeatUntil.AddDate(0, 0, 1) // The day after the last day we can be on.
 	}
 
 	e.Duration = time.Since(e.startDate) - time.Since(e.endDate)
@@ -113,7 +114,7 @@ func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
 
 				// Found the first potential match.
 
-				for startDate.Before(end) {
+				for startDate.Before(end) && startDate.Before(e.repeatUntil) {
 					// Sending a match.
 					eventInstance := *e
 					eventInstance.StartTime = startDate
@@ -129,7 +130,6 @@ func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
 						skipsIndex = 0
 					}
 				}
-				// Made it past the last match.
 			}
 	}
 	close(resp)
