@@ -226,17 +226,16 @@
 		month.text(monthNames[date.getMonth()].toLowerCase());
 		year.text(date.getFullYear());
 
-		var firstVisibleDate = new Date(date);
-		firstVisibleDate.setDate(1);
-		firstVisibleDate.setDate(1 - firstVisibleDate.getDay());
+		var firstVisibleDate = date.clone()
+								   .setDate(1)
+								   .addDays(-date.getDay());
 
-		var lastVisibleDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+		var lastVisibleDate = date.clone()
+								  .setDate(1)
+								  .addMonths(1)
+								  .addDays(-1);
 
-		var iterDate = new Date(firstVisibleDate);
-		iterDate.setHours(0);
-		iterDate.setMinutes(0);
-		iterDate.setSeconds(0);
-		iterDate.setMilliseconds(0);
+		var iterDate = firstVisibleDate.clone().clearTime();
 
 		// We quit when we pass the last day of the month and it is a Sunday.
 		while (iterDate <= lastVisibleDate || iterDate.getDay() !== 0) {
@@ -248,17 +247,17 @@
 			}
 
 			var cell = $("<td />");
-			cell.text(makeLengthTwo(iterDate.getDate().toString()));
+			cell.text(iterDate.toString("dd"));
 			row.append(cell);
 
 			if (iterDate.getMonth() !== date.getMonth()) {
 				cell.addClass("sideMonth");
-			} else if (iterDate.toDateString() === new Date().toDateString()) {
+			} else if (iterDate.valueOf() === XDate.today().valueOf()) {
 				cell.addClass("today");
 			}
 
 
-			iterDate.setDate(iterDate.getDate() + 1);
+			iterDate.addDays(1);
 		}
 
 		// Remove the event handler when we're gone for efficiency.

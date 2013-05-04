@@ -1,8 +1,8 @@
 (function(global) {
 	"use strict";
 	function Calendar(apiServer) {
-		var now = new Date();
-		var thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+		var now = XDate.today();
+		var thisMonth = now.clone().setDate(1);
 
 		this.loggedIn = false;
 		this.today = thisMonth;
@@ -58,97 +58,41 @@
 	};
 
 	Calendar.prototype.getEventsForMonth = function(cb) {
-		var tempDate = new Date(this.today);
-		tempDate.setDate(1);
-		var startDate = formatDate(tempDate);
-		tempDate.setMonth(tempDate.getMonth() + 1);
-		var endDate = formatDate(tempDate);
+		var baseDate = this.today.clone().setDate(1);
+		var startDate = baseDate.toString("yyyy-MM-dd");
+		var endDate = baseDate.addMonths(1).toString("yyyy-MM-dd");
 
 		this.apiServer.eventsInDateRange(startDate, endDate, cb);
 	};
 
 	Calendar.prototype.getDate = function() {
-		return this.today;
+		return this.today.clone();
 	};
 
 	Calendar.prototype.setDate = function(date) {
-		this.today = date;
+		this.today = new XDate(date);
 	};
 
 	Calendar.prototype.yesterday = function() {
-		var date = new Date(this.today);
-		date.setDate(date.getDate()-1);
-		this.today = date;
+		this.today.addDays(-1);
 	};
 	Calendar.prototype.prevMonth = function() {
-		var date = new Date(this.today);
-		date.setMonth(date.getMonth()-1);
-		this.today = date;
+		this.today.addMonths(-1, true);
 	};
 	Calendar.prototype.prevYear = function() {
-		var date = new Date(this.today);
-		date.setFullYear(date.getFullYear()-1);
-		this.today = date;
+		this.today.addYears(-1, true);
 	};
 
 	Calendar.prototype.tomorrow = function() {
-		var date = new Date(this.today);
-		date.setDate(date.getDate()+1);
-		this.today = date;
+		this.today.addDays(1);
 	};
 	Calendar.prototype.nextMonth = function() {
-		var date = new Date(this.today);
-		date.setMonth(date.getMonth()+1);
-		this.today = date;
+		this.today.addMonths(1, true);
 	};
 	Calendar.prototype.nextYear = function() {
-		var date = new Date(this.today);
-		date.setFullYear(date.getFullYear()+1);
-		this.today = date;
+		this.today.addYears(1, true);
 	};
 
-	function formatDate(d) {
-		return d.getFullYear() + "-" + makeTwoDigits(d.getMonth() + 1) + "-" + makeTwoDigits(d.getDate());
-	}
-
-
-	function makeTwoDigits(num) {
-		if (num >= 10) {
-			return "" + num;
-		} else {
-			return "0" + num;
-		}
-	}
-/*
-		return {
-			display: function() {
-				$(container).fadeOut(function() {
-					$(this).fadeIn();
-					// Wait for us to start fading back in so we can properly
-					// figure out how large the text will be when we go to
-					// resize it.
-					setTimeout(function() {
-						categories[category](container, controls, today)
-					}, 10);
-				});
-			},
-			registerView: function(name, displayFunction) {
-				// Add the category to our options.
-				categories[name] = displayFunction;
-			},
-			setView: function(name) {
-				if (name in categories && categories.hasOwnProperty(name)) {
-					category = name;
-				} else {
-					throw ("Unknown view name " + name);
-				}
-			},
-			setDate: function(date) {
-				today = date;
-			}
-		};
-	}
-*/
 
 	global.Calendar = Calendar;
 })(window);
