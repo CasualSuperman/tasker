@@ -1,4 +1,12 @@
-<form id="repeatForm">
+<form id="eventForm">
+	<h2>Starts on:</h2>
+	<input name="startDate" type="date"></input>
+	<input name="startTime" type="time"></input>
+
+	<h2>Ends on:</h2>
+	<input name="endDate" type="date"></input>
+	<input name="endTime" type="time"></input>
+
 	<h2>Repeats:</h2>
 	<select name="frequency">
 		<option value="none">None</option>
@@ -81,11 +89,6 @@
 		<input type="checkbox" name="fullWeek" /> Full weeks only
 	</div>
 
-	<div class="monthly date weekly yearly daily">
-		<h2>Starts on:</h2>
-		<input name="startsOn" type="date"></input>
-	</div>
-
 	<h2>Ends:</h2>
 	<input name="ends" type="radio" value="never" checked /> Never
 	<br />
@@ -103,27 +106,28 @@
 </form>
 
 <script>
-$("#repeatForm").delegate("select[name=frequency]", "change", function(e) {
+var formName = "#eventForm";
+$(formName).delegate("select[name=frequency]", "change", function(e) {
 	var selected = $(this).val();
-	$("#repeatForm").removeClass("daily weekly monthly yearly").addClass(selected);
-	$("#repeatForm").find(".daily, .weekly, .monthly, .yearly")
+	$(formName).removeClass("daily weekly monthly yearly").addClass(selected);
+	$(formName).find(".daily, .weekly, .monthly, .yearly")
 					.hide();
-	$("#repeatForm").find("." + selected)
+	$(formName).find("." + selected)
 					.show();
 	if (selected === "monthly") {
-		$("[name=repeatByMonth]", "#repeatForm").change();
+		$("[name=repeatByMonth]", formName).change();
 	}
 });
-$("#repeatForm").delegate("[name=repeatByMonth]", "change", function(e) {
-	var selected = $("input[name=repeatByMonth]:checked", "#repeatForm").val();
-	$(".monthly", "#repeatForm").filter(".day, .date").hide();
-	$(".monthly", "#repeatForm").filter("." + selected).show();
+$(formName).delegate("[name=repeatByMonth]", "change", function(e) {
+	var selected = $("input[name=repeatByMonth]:checked", formName).val();
+	$(".monthly", formName).filter(".day, .date").hide();
+	$(".monthly", formName).filter("." + selected).show();
 });
-$("#repeatForm").change(generateSummary);
-$("select[name=frequency]", "#repeatForm").change();
+$(formName).change(generateSummary);
+$("select[name=frequency]", formName).change();
 var d = new Date();
 var today = d.getFullYear() + "-" + (d.getMonth() < 9 ? "0" + (d.getMonth() + 1) : (d.getMonth() + 1)) + "-" + d.getDate();
-$("input[type=date]", "#repeatForm").attr("data-value", today).pickadate({
+$("input[type=date]", formName).attr("data-value", today).pickadate({
 	format: "mmmm d, yyyy",
 	formatSubmit: "yyyy-mm-dd"
 });
@@ -161,7 +165,7 @@ function generateSummary() {
 		} else {
 			summary += "weeks on ";
 		}
-		var days = $("input[name=daysOfWeek]:checked", "#repeatForm").map(function() {
+		var days = $("input[name=daysOfWeek]:checked", formName).map(function() {
 			return this.value;
 		}).get();
 
@@ -173,8 +177,8 @@ function generateSummary() {
 
 		return insertSummary(summary);
 	} else if (freq === "monthly") {
-		var dateOrDay = $("input[name=repeatByMonth]:checked", "#repeatForm").val();
-		var n = parseInt($("input[name=startsOn]", "#repeatForm").val().split("-")[2]);
+		var dateOrDay = $("input[name=repeatByMonth]:checked", formName).val();
+		var n = parseInt($("input[name=startDate]", formName).val().split("-")[2]);
 
 		if (dateOrDay === "date") {
 			summary = "On the " + ordinal(n);
@@ -192,7 +196,7 @@ function generateSummary() {
 				summary += "months on the ";
 			}
 
-			var days = $("input[name=daysOfWeek]:checked", "#repeatForm").map(function() {
+			var days = $("input[name=daysOfWeek]:checked", formName).map(function() {
 				return this.value;
 			}).get();
 
@@ -200,7 +204,7 @@ function generateSummary() {
 				return insertWarnSummary("Please select a day of the week.");
 			}
 
-			var week = $("select[name=weekInMonth] option:checked", "#repeatForm").text().toLowerCase();
+			var week = $("select[name=weekInMonth] option:checked", formName).text().toLowerCase();
 			if ($("input[name=fullWeek]").prop("checked")) {
 				week = week.replace(" week", " full week");
 			}
@@ -223,7 +227,7 @@ function generateSummary() {
 		} else {
 			summary += "years on ";
 		}
-		var start = $("input[name=startsOn]", "#repeatForm").val().split("-");
+		var start = $("input[name=startDate]", formName).val().split("-");
 
 		summary += mToMonth(parseInt(start[1]));
 		summary += " " + ordinal(parseInt(start[2])) + ".";
@@ -251,11 +255,11 @@ function dayList(days) {
 }
 
 function insertSummary(summary) {
-	$(".summary", "#repeatForm").removeClass("warning").filter("#summary").text(summary);
+	$(".summary", formName).removeClass("warning").filter("#summary").text(summary);
 }
 
 function insertWarnSummary(summary) {
-	$(".summary", "#repeatForm").addClass("warning").filter("#summary").text(summary);
+	$(".summary", formName).addClass("warning").filter("#summary").text(summary);
 }
 
 function dToDay(d) {
