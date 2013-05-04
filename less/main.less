@@ -72,7 +72,20 @@ body {
 		border-top: 1px solid @grey;
 		color: @foreground;
 		padding: 1%;
+		position: relative;
 		vertical-align: top;
+	}
+
+	.selectTriangle {
+		border-color: @accent transparent transparent transparent;
+		border-style: solid;
+		border-width: 20px 20px 0 0;
+		height: 0;
+		left: 0;
+		position: absolute;
+		top: 0;
+		width: 0;
+		z-index: 0;
 	}
 
 	th {

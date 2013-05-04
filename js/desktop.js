@@ -4,6 +4,8 @@
 		var _this = this;
 		this.model = calendar;
 
+		this.currentDate = calendar.getDate();
+
 		var components = document.createDocumentFragment();
 
 		this.overlay = document.createElement("div");
@@ -129,13 +131,6 @@
 		dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday",
 			"Friday","Saturday"];
 
-	function makeLengthTwo(str) {
-		if (str.length === 1) {
-			return "0" + str;
-		}
-		return str;
-	}
-
 	function initControls(ui, model, root) {
 		model.getLoggedIn(function(loggedIn) {
 			if (loggedIn) {
@@ -196,12 +191,12 @@
 	}
 
 	function nextMonth(ui) {
-		ui.model.nextMonth();
+		ui.currentDate.addMonths(1, true);
 		ui.updateDisplay();
 	}
 
 	function prevMonth(ui) {
-		ui.model.prevMonth();
+		ui.currentDate.addMonths(-1, true);
 		ui.updateDisplay();
 	}
 
@@ -215,7 +210,7 @@
 			year = $("<div />", {'id':'year'}),
 			cont = $(root),
 			row = $("<tr />"),
-			date = ui.model.getDate();
+			date = ui.currentDate;
 
 		dayNames.forEach(function(day) {
 			row.append($("<th />").text(day.toLowerCase()));
@@ -227,8 +222,8 @@
 		year.text(date.getFullYear());
 
 		var firstVisibleDate = date.clone()
-								   .setDate(1)
-								   .addDays(-date.getDay());
+								   .setDate(1);
+		firstVisibleDate.addDays(-firstVisibleDate.getDay());
 
 		var lastVisibleDate = date.clone()
 								  .setDate(1)
@@ -248,17 +243,33 @@
 
 			var cell = $("<td />");
 			cell.text(iterDate.toString("dd"));
+			cell.data("date", iterDate.clone());
 			row.append(cell);
 
 			if (iterDate.getMonth() !== date.getMonth()) {
 				cell.addClass("sideMonth");
-			} else if (iterDate.valueOf() === XDate.today().valueOf()) {
-				cell.addClass("today");
+			} else {
+				if (iterDate.valueOf() === ui.model.getDate().valueOf()) {
+					cell.addClass("today");
+				}
+				if (iterDate.valueOf() === ui.currentDate.valueOf()) {
+					cell.append($("<div class='selectTriangle' />"));
+				}
 			}
-
 
 			iterDate.addDays(1);
 		}
+
+		// Move the selected indicator around when people click on dates.
+		$(calendar).delegate("td:not(.sideMonth)", "click", function(e) {
+			var _this = this;
+			var triangle = $(".selectTriangle", calendar);
+			triangle.fadeOut(100, function() {
+				$(_this).append(this);
+				$(this).fadeIn(250);
+				ui.currentDate = $(_this).data("date");
+			});
+		});
 
 		// Remove the event handler when we're gone for efficiency.
 		$(window).off("resize.month");

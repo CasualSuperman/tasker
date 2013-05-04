@@ -1,11 +1,8 @@
 (function(global) {
 	"use strict";
 	function Calendar(apiServer) {
-		var now = XDate.today();
-		var thisMonth = now.clone().setDate(1);
-
 		this.loggedIn = false;
-		this.today = thisMonth;
+		this.today = XDate.today();
 		this.setupDone = false;
 		this.apiBuffer = [];
 		this.apiServer = apiServer;
