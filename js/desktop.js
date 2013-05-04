@@ -5,6 +5,7 @@
 		this.model = calendar;
 
 		this.currentDate = calendar.getDate();
+		this.selectedDate = calendar.getDate();
 
 		var components = document.createDocumentFragment();
 
@@ -192,11 +193,13 @@
 
 	function nextMonth(ui) {
 		ui.currentDate.addMonths(1, true);
+		ui.selectedDate = null;
 		ui.updateDisplay();
 	}
 
 	function prevMonth(ui) {
 		ui.currentDate.addMonths(-1, true);
+		ui.selectedDate = null;
 		ui.updateDisplay();
 	}
 
@@ -252,7 +255,8 @@
 				if (iterDate.valueOf() === ui.model.getDate().valueOf()) {
 					cell.addClass("today");
 				}
-				if (iterDate.valueOf() === ui.currentDate.valueOf()) {
+				if (ui.selectedDate !== null && 
+					iterDate.valueOf() === ui.selectedDate.valueOf()) {
 					cell.append($("<div class='selectTriangle' />"));
 				}
 			}
@@ -264,11 +268,18 @@
 		$(calendar).delegate("td:not(.sideMonth)", "click", function(e) {
 			var _this = this;
 			var triangle = $(".selectTriangle", calendar);
-			triangle.fadeOut(100, function() {
-				$(_this).append(this);
-				$(this).fadeIn(250);
-				ui.currentDate = $(_this).data("date");
-			});
+			if (triangle.size() === 0) {
+				triangle = $("<div class='selectTriangle' />");
+				$(this).append(triangle);
+				triangle.fadeIn(250);
+				ui.selectedDate = $(_this).data("date");
+			} else {
+				triangle.fadeOut(100, function() {
+					$(_this).append(this);
+					$(this).fadeIn(250);
+					ui.selectedDate = $(_this).data("date");
+				});
+			}
 		});
 
 		// Remove the event handler when we're gone for efficiency.
