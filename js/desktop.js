@@ -4,13 +4,6 @@
 		var _this = this;
 		this.model = calendar;
 
-		this.events = [];
-		calendar.getEventsForMonth(function(data) {
-			if (data.err === undefined) {
-				displayEvents(data.events);
-			}
-		});
-
 		var components = document.createDocumentFragment();
 
 		this.overlay = document.createElement("div");
@@ -31,8 +24,15 @@
 		initContainer(this, this.container);
 		initOverlay(this, this.overlay);
 
-		displayMonth(this.container, this);
 		displayControls(calendar, this.controls);
+
+		this.events = [];
+		calendar.getEventsForMonth(function(data) {
+			if (data.err === undefined) {
+				_this.events = data.events;
+				displayMonth(_this.container, _this, data.events);
+			}
+		});
 	}
 
 	var fadeDuration = 300, // 300ms
@@ -43,23 +43,18 @@
 		var _this = this;
 		this.transitioning = true;
 		$(this.container).fadeOut(fadeDuration, function() {
-			displayMonth(_this.container, _this);
 			var display = this;
 			_this.model.getEventsForMonth(function(data) {
 				if (data.err === undefined) {
-					displayEvents(data.events);
+					displayMonth(_this.container, _this, data.events);
+					$(display).fadeIn(fadeDuration);
+					setTimeout(function() {
+						_this.transitioning = false;
+					}, pauseDuration);
 				}
-				$(display).fadeIn(fadeDuration)
-				setTimeout(function() {
-					_this.transitioning = false;
-				}, pauseDuration);
 			});
 		});
 	};
-
-	function displayEvents(events) {
-		console.log(events);
-	}
 
 	DesktopUI.prototype.displayLoginForm = function() {
 		var _this = this;
@@ -213,7 +208,7 @@
 	function displayControls(cal, root) {
 	}
 
-	function displayMonth(root, ui) {
+	function displayMonth(root, ui, events) {
 		var fragment = document.createDocumentFragment(),
 			calendar = $("<table />", {'id':'month'}),
 			month = $("<div />", {'id':'name'}),
@@ -245,6 +240,7 @@
 
 		// We quit when we pass the last day of the month and it is a Sunday.
 		while (iterDate <= lastVisibleDate || iterDate.getDay() !== 0) {
+
 			// On the first day of the week, start a new row.
 			if (iterDate.getDay() === 0) {
 				row = $("<tr />");
