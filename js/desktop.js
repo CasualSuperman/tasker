@@ -124,7 +124,7 @@
 	function adjustWidth(ui, width) {
 		$("#month", ui.container).animate({"padding-right": width+"px"});
 		$("#name", ui.container).animate({"margin-right": width+"px"});
-		$(ui.controls).animate({"width": width+"px"});
+		$(ui.controls).animate({"width": width+"px"}, {"progress": function(){$(window).trigger("resize.month");}});
 	}
 
 	global.DesktopUI = DesktopUI;
