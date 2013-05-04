@@ -14,6 +14,17 @@ var defaultLocation = time.UTC
 
 func eventsInRange(res http.ResponseWriter, req *http.Request, sess db.Database) apiResponse {
 	session, _ := store.Get(req, "calendar")
+	startDate, err := time.Parse(dateFormat, req.FormValue("start"))
+	if err != nil {
+		fmt.Println(startDate, err)
+		return apiUserResponse{false, "Unable to parse start date.", http.StatusOK}
+	}
+	endDate, err := time.Parse(dateFormat, req.FormValue("end"))
+	if err != nil {
+		fmt.Println(endDate, err)
+		return apiUserResponse{false, "Unable to parse end date.", http.StatusOK}
+	}
+
 	if val, ok := session.Values["logged-in"]; ok && val.(bool) {
 		uid := int(session.Values["uid"].(int64))
 		eventTable := sess.ExistentCollection("Events")
@@ -27,10 +38,7 @@ func eventsInRange(res http.ResponseWriter, req *http.Request, sess db.Database)
 			for i, event := range eventResults {
 				eventChan := make(chan Event)
 				(&events[i]).Parse(event)
-				go events[i].FindInRange(
-					time.Date(2013, time.April, 1, 0, 0, 0, 0, defaultLocation),
-					time.Date(2013, time.May, 1, 0, 0, 0, 0, defaultLocation),
-					eventChan)
+				go events[i].FindInRange(startDate, endDate, eventChan)
 
 				var ok bool = true
 				var e Event
@@ -46,14 +54,14 @@ func eventsInRange(res http.ResponseWriter, req *http.Request, sess db.Database)
 		}
 		return &eventsList{
 			eventsInRange,
-			time.Date(2013, time.April, 1, 0, 0, 0, 0, defaultLocation),
-			time.Date(2013, time.May, 1, 0, 0, 0, 0, defaultLocation),
+			startDate,
+			endDate,
 		}
 	}
 	return &eventsList{
 		[]Event{},
-		time.Date(2013, time.April, 1, 0, 0, 0, 0, defaultLocation),
-		time.Date(2013, time.May, 1, 0, 0, 0, 0, defaultLocation),
+		startDate,
+		endDate,
 	}
 
 }
