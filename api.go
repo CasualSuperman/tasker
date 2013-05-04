@@ -37,16 +37,23 @@ func runApiServer(sess db.Database) {
 	// If we get a call on /api, check the path and see if we have a handler
 	// for it.
 	http.HandleFunc("/api/", func(res http.ResponseWriter, req *http.Request) {
-		handler, ok := handlers[req.URL.Path[len("/api/"):]]
-		if ok {
-			resp := handler(res, req, sess)
-			if resp != nil {
-				res.Header().Add("content-type", resp.Type())
-				res.WriteHeader(resp.Code())
-				res.Write(resp.Json())
-			}
+		srcUrl := req.Referer()
+		if srcUrl != baseURL {
+			// Prevent XSS attacks.
+			res.WriteHeader(http.StatusForbidden)
 		} else {
-			res.WriteHeader(http.StatusNotImplemented)
+			handler, ok := handlers[req.URL.Path[len("/api/"):]]
+
+			if ok {
+				resp := handler(res, req, sess)
+				if resp != nil {
+					res.Header().Add("content-type", resp.Type())
+					res.WriteHeader(resp.Code())
+					res.Write(resp.Json())
+				}
+			} else {
+				res.WriteHeader(http.StatusNotImplemented)
+			}
 		}
 	})
 }
