@@ -3,12 +3,9 @@
 	function API(server) {
 		this.server = server;
 	};
-	API.prototype.getBool = function(path) {
-
-	};
-	API.prototype.getLoggedIn = function(cb) {
+	API.prototype.getBool = function(path, cb) {
 		$.ajax({
-			url: this.server + "user/info",
+			url: this.server + path,
 			dataType: "json"
 		}).done(function(data) {
 			if (data.success === false) {
@@ -17,6 +14,9 @@
 				cb(true);
 			}
 		});
+	};
+	API.prototype.getLoggedIn = function(cb) {
+		this.getBool("user/info", cb);
 	};
 	API.prototype.login = function(formData, cb) {
 		$.ajax({
@@ -27,6 +27,13 @@
 	API.prototype.logout = function(cb) {
 		$.ajax({
 			url: this.server + "user/logout",
+			dataType: "json"
+		}).done(cb);
+	};
+
+	API.prototype.eventsInDateRange = function(start, end, cb) {
+		$.ajax({
+			url: this.server + "events/range?start=" + start + "&end=" + end,
 			dataType: "json"
 		}).done(cb);
 	};

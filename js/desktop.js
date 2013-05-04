@@ -1,8 +1,16 @@
 (function(global) {
 	"use strict";
 	function DesktopUI(root, calendar) {
+		var _this = this;
 		this.model = calendar;
-		
+
+		this.events = [];
+		calendar.getEventsForMonth(function(data) {
+			if (data.err === undefined) {
+				displayEvents(data.events);
+			}
+		});
+
 		var components = document.createDocumentFragment();
 
 		this.overlay = document.createElement("div");
@@ -36,12 +44,22 @@
 		this.transitioning = true;
 		$(this.container).fadeOut(fadeDuration, function() {
 			displayMonth(_this.container, _this);
-			$(this).fadeIn(fadeDuration)
-			setTimeout(function() {
-				_this.transitioning = false;
-			}, pauseDuration);
+			var display = this;
+			_this.model.getEventsForMonth(function(data) {
+				if (data.err === undefined) {
+					displayEvents(data.events);
+				}
+				$(display).fadeIn(fadeDuration)
+				setTimeout(function() {
+					_this.transitioning = false;
+				}, pauseDuration);
+			});
 		});
 	};
+
+	function displayEvents(events) {
+		console.log(events);
+	}
 
 	DesktopUI.prototype.displayLoginForm = function() {
 		var _this = this;

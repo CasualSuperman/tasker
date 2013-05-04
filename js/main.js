@@ -8,6 +8,7 @@
 		this.today = thisMonth;
 		this.setupDone = false;
 		this.apiBuffer = [];
+		this.apiServer = apiServer;
 
 		var _this = this;
 
@@ -30,7 +31,7 @@
 
 	Calendar.prototype.login = function(data, cb) {
 		var _this = this;
-		apiServer.login(data, function(resp) {
+		this.apiServer.login(data, function(resp) {
 			if (resp.success) {
 				_this.loggedIn = true;
 			}
@@ -40,7 +41,7 @@
 
 	Calendar.prototype.logout = function(cb) {
 		var _this = this;
-		apiServer.logout(function(data) {
+		this.apiServer.logout(function(data) {
 			if (data.success) {
 				_this.loggedIn = false;
 			}
@@ -54,6 +55,16 @@
 		} else {
 			this.apiBuffer.push(["loggedIn", cb]);
 		}
+	};
+
+	Calendar.prototype.getEventsForMonth = function(cb) {
+		var tempDate = new Date(this.today);
+		tempDate.setDate(1);
+		var startDate = formatDate(tempDate);
+		tempDate.setMonth(tempDate.getMonth() + 1);
+		var endDate = formatDate(tempDate);
+
+		this.apiServer.eventsInDateRange(startDate, endDate, cb);
 	};
 
 	Calendar.prototype.getDate = function() {
@@ -96,6 +107,18 @@
 		this.today = date;
 	};
 
+	function formatDate(d) {
+		return d.getFullYear() + "-" + makeTwoDigits(d.getMonth() + 1) + "-" + makeTwoDigits(d.getDate());
+	}
+
+
+	function makeTwoDigits(num) {
+		if (num >= 10) {
+			return "" + num;
+		} else {
+			return "0" + num;
+		}
+	}
 /*
 		return {
 			display: function() {
