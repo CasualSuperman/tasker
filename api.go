@@ -39,7 +39,7 @@ func runApiServer(sess db.Database) {
 	http.HandleFunc("/api/", func(res http.ResponseWriter, req *http.Request) {
 		srcUrl := req.Referer()
 		if srcUrl != baseURL {
-			// Prevent XSS attacks.
+			// Prevent CSRF attacks.
 			res.WriteHeader(http.StatusForbidden)
 		} else {
 			handler, ok := handlers[req.URL.Path[len("/api/"):]]
