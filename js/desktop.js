@@ -95,6 +95,20 @@
 		$(this.firstChild).empty();
 	};
 
+	DesktopUI.prototype.slideInControls = function() {
+		adjustWidth(this, 30);
+	};
+
+	DesktopUI.prototype.slideOutControls = function() {
+		adjustWidth(this, 300);
+	};
+
+	function adjustWidth(ui, width) {
+		$("#month", ui.container).animate({"padding-right": width+"px"});
+		$("#name", ui.container).animate({"margin-right": width+"px"});
+		$(ui.controls).animate({"width": width+"px"});
+	}
+
 	global.DesktopUI = DesktopUI;
 
 	var monthNames = ["January","February","March","April","May","June",
