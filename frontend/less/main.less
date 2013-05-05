@@ -77,6 +77,7 @@ body {
 		.date {
 			margin: 5px 7px;
 			float: right;
+			z-index: 2;
 		}
 
 		.event {
@@ -86,19 +87,20 @@ body {
 			padding: 2px;
 			position: absolute;
 			right: 0;
+			z-index: 2;
 		}
 	}
 
 	.selectTriangle {
-		border-color: @accent transparent transparent transparent;
+		border-color: transparent transparent @accent transparent;
 		border-style: solid;
-		border-width: 20px 20px 0 0;
+		border-width: 0 0 2em 2em;
+		bottom: -1px;
 		height: 0;
-		left: -1px;
 		position: absolute;
-		top: -1px;
+		right: -1px;
 		width: 0;
-		z-index: 0;
+		z-index: 1;
 	}
 
 	th {
