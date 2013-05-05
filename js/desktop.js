@@ -268,7 +268,7 @@
 		$(calendar).delegate("td:not(.sideMonth)", "click", function(e) {
 			var _this = this;
 			var triangle = $(".selectTriangle", calendar);
-			if (triangle.size() === 0) {
+			if (triangle.length === 0) {
 				triangle = $("<div class='selectTriangle' />");
 				$(this).append(triangle);
 				triangle.fadeIn(250);
