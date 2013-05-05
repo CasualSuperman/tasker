@@ -312,10 +312,14 @@
 
 		var cal = $(calendar), mon = $(month);
 
-		var defaultFontSize = mon.css("font-size").replace("px", "");
-
 		var fixFont = function() {
 			var currentSize = mon.css("font-size").replace("px","");
+
+			mon.css("font-size", "");
+			var defaultFontSize = mon.css("font-size").replace("px", "");
+
+			mon.css("font-size", currentSize + "px");
+
 			if (mon.width() > (cal.width() - 60)) {
 				var scaleFontRatio = (mon.width() / (cal.width() - 60));
 				var scalePosRatio = (mon.width() / (cal.width()));
