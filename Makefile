@@ -1,20 +1,25 @@
+all: frontend backend
+
 backend: backend/*.go
 	go build -o tasker -p 2 ./backend/
 
+frontend: css js
+
 css: static/main.css
 
-static/main.css: less/index.less less/main.less less/color.less less/controls.less less/overlay.less
+static/main.css: frontend/less/index.less frontend/less/main.less \
+				 frontend/less/color.less frontend/less/controls.less \
+				 frontend/less/overlay.less
 	lessc -O2 -x less/index.less static/main.css
 
-js: base.js desktop.js mobile.js
+#static/mobile.js
+js: static/main.js static/desktop.js
 
-base.js: js/main.js js/api.js js/ui.js
-	@echo "main.js"
+static/main.js: frontend/js/main.js frontend/js/api.js
 	@closure --js $^ > static/main.js
 
-desktop.js: js/desktop.js
-	@echo "desktop.js"
+static/desktop.js: frontend/js/desktop.js
 	@closure --js $^ > static/desktop.js
 
-mobile.js:
+static/mobile.js:
 	@echo "Mobile unimplemented."
