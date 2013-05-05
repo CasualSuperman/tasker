@@ -109,7 +109,7 @@
 	};
 
 	DesktopUI.prototype.clearOverlay = function() {
-		$(this.firstChild).empty();
+		$("*", this.firstChild).remove();
 	};
 
 	DesktopUI.prototype.slideInControls = function() {
@@ -187,7 +187,7 @@
 		root.firstChild.className = "content";
 		$(root).click(function(e) {
 			if (e.target === root) {
-				$(this).fadeOut();
+				$(this).fadeOut(ui.clearOverlay);
 			}
 		});
 	}
