@@ -141,10 +141,10 @@
 		});
 
 		$(root).load("templates/desktop/controls.htm", function() {
-			$("#navigation .left", this).click(function() {
+			$("#navigation .previous", this).click(function() {
 				prevMonth(ui);
 			});
-			$("#navigation .right", this).click(function() {
+			$("#navigation .next", this).click(function() {
 				nextMonth(ui);
 			});
 			$("#loginIndicator", this).click(function() {
