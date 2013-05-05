@@ -21,6 +21,7 @@ type Event struct {
 	StartTime time.Time    `json:"startTime"`
 	Duration time.Duration `json:"duration"`
 	Cid int				   `json:"cid"`
+	Eid int				   `json:"eid"`
 
 	allDay bool
 	startDate time.Time
@@ -55,6 +56,7 @@ func (e *Event) Parse(entry db.Item) {
 	e.Duration = time.Since(e.startDate) - time.Since(e.endDate)
 	e.Name = entry.GetString("name")
 	e.Cid = int(entry.GetInt("calendar"))
+	e.Eid = int(entry.GetInt("eid"))
 }
 
 func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
