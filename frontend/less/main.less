@@ -71,23 +71,32 @@ body {
 	td {
 		border-top: 1px solid @grey;
 		color: @foreground;
+		padding-top: 2em;
 		position: relative;
 		vertical-align: top;
 
 		.date {
-			margin: 5px 7px;
+			margin: -1.75em 7px 5px;
 			float: right;
 			z-index: 2;
 		}
 
 		.event {
-			border-left: 2px #f34 solid;
+			border-left: 2px solid;
 			font-size: 0.8em;
 			left: 0;
 			padding: 2px;
 			position: absolute;
 			right: 0;
 			z-index: 2;
+
+			&.selected {
+				border-bottom: 1px solid;
+			}
+
+			.time {
+				float: right;
+			}
 		}
 	}
 

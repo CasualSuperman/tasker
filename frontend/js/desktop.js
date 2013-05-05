@@ -261,15 +261,27 @@
 					iterDate.valueOf() === ui.selectedDate.valueOf()) {
 					cell.append($("<div class='selectTriangle' />"));
 				}
+				var eventsOnDay = [];
 				$.each(events, function(ignored, e) {
 					var happensOn = new XDate(e.startTime);
 					if (happensOn.clone().clearTime().valueOf() === iterDate.valueOf()) {
-						var eventDiv = $("<div class='event' />");
-						var duration = Math.round(e.duration / 1000 / 1000 / 1000 / 60); // Convert to Minutes
-						eventDiv.addClass(duration + "min");
-						eventDiv.text(e.name);
-						cell.append(eventDiv);
+						eventsOnDay.push(e);
 					}
+				});
+
+				eventsOnDay.sort(function(a, b) {
+					return a.startTime - b.startTime;
+				});
+
+				$.each(eventsOnDay, function(i, e) {
+					var eventDiv = $("<div class='event'><span class='name' /><span class='time' /></div>");
+					var duration = Math.round(e.duration / 1000 / 1000 / 1000 / 60); // Convert to Minutes
+					eventDiv.addClass(duration + "min")
+							.css({"top": (2.5*(i+1)) + "em"})
+							.data("event", e);
+					$(".name", eventDiv).text(e.name);
+					$(".time", eventDiv).text(new XDate(e.startTime, true).toString("h(:mm)TT"));
+					cell.append(eventDiv);
 				});
 			}
 
