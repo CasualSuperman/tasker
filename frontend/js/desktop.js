@@ -30,7 +30,7 @@
 		displayControls(calendar, this.controls);
 
 		this.events = [];
-		calendar.getEventsForMonth(function(data) {
+		calendar.getEventsForMonth(this.currentDate.clone() ,function(data) {
 			if (data.err === undefined) {
 				_this.events = data.events;
 				displayMonth(_this.container, _this, data.events);
@@ -47,7 +47,7 @@
 		this.transitioning = true;
 		$(this.container).fadeOut(fadeDuration, function() {
 			var display = this;
-			_this.model.getEventsForMonth(function(data) {
+			_this.model.getEventsForMonth(_this.currentDate.clone(), function(data) {
 				if (data.err === undefined) {
 					displayMonth(_this.container, _this, data.events);
 					$(display).fadeIn(fadeDuration);

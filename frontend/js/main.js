@@ -54,8 +54,8 @@
 		}
 	};
 
-	Calendar.prototype.getEventsForMonth = function(cb) {
-		var baseDate = this.today.clone().setDate(1);
+	Calendar.prototype.getEventsForMonth = function(month, cb) {
+		var baseDate = month.setDate(1);
 		var startDate = baseDate.toString("yyyy-MM-dd");
 		var endDate = baseDate.addMonths(1).toString("yyyy-MM-dd");
 
