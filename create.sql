@@ -23,6 +23,9 @@ CREATE TABLE IF NOT EXISTS Calendars (
 	# What this user named this calendar.
 	name VARCHAR(200),
 
+	# The color (as a hex code) that the user picked for this calendar.
+	color CHAR(6),
+
 	FOREIGN KEY(owner) REFERENCES Users(uid)
 );
 
