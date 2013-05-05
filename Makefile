@@ -1,6 +1,10 @@
+.SUFFIXES: 
+
 all: frontend backend
 
-backend: backend/*.go
+backend: tasker
+
+tasker: backend/*.go
 	@echo -e "6g\ttasker"
 	@go build -o tasker -p 2 ./backend/
 
