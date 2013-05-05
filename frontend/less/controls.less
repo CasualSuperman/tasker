@@ -1,5 +1,18 @@
 @import "color";
 
+input {
+	background-color: @background;
+	border: 2px solid @grey;
+	font-size: 1em;
+	margin-bottom: 0.2em;
+	padding: 0.25em;
+
+	&:hover, &:active, &:focus {
+		border-color: @darkgrey;
+		outline-width: 0;
+	}
+}
+
 #controls {
 	background-color: @background;
 	color: @darkgrey;
@@ -15,6 +28,10 @@
 	}
 
 	&.loggedIn #loginIndicator {
+		color: @accent;
+	}
+
+	.typicn:hover {
 		color: @accent;
 	}
 
