@@ -1,3 +1,6 @@
+backend: backend/*.go
+	go build -o tasker -p 2 ./backend/
+
 css: static/main.css
 
 static/main.css: less/index.less less/main.less less/color.less less/controls.less less/overlay.less
