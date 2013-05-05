@@ -50,6 +50,7 @@
 			_this.model.getEventsForMonth(_this.currentDate.clone(), function(data) {
 				if (data.err === undefined) {
 					displayMonth(_this.container, _this, data.events);
+					$(window).trigger("resize");
 					$(display).fadeIn(fadeDuration);
 					setTimeout(function() {
 						_this.transitioning = false;
@@ -122,7 +123,7 @@
 	function adjustWidth(ui, width) {
 		$("#month", ui.container).animate({"padding-right": width+"px"});
 		$("#name", ui.container).animate({"margin-right": width+"px"});
-		$(ui.controls).animate({"width": width+"px"}, {"progress": function(){$(window).trigger("resize.month");}});
+		$(ui.controls).animate({"width": width+"px"}, {"progress": function(){$(window).trigger("resize");}});
 	}
 
 	global.DesktopUI = DesktopUI;
