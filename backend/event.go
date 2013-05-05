@@ -103,7 +103,7 @@ func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
 				skips[len(skips)-1] += 7 * (e.repeatFrequency-1)
 				skipsIndex := 0
 
-				for startDate.Before(start) {
+				for startDate.Before(start) || startDate.Before(e.startDate) {
 					startDate = startDate.AddDate(0, 0, skips[skipsIndex])
 
 					skipsIndex++
