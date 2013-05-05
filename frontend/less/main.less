@@ -71,9 +71,22 @@ body {
 	td {
 		border-top: 1px solid @grey;
 		color: @foreground;
-		padding: 1%;
 		position: relative;
 		vertical-align: top;
+
+		.date {
+			margin: 5px 7px;
+			float: right;
+		}
+
+		.event {
+			border-left: 2px #f34 solid;
+			font-size: 0.8em;
+			left: 0;
+			padding: 2px;
+			position: absolute;
+			right: 0;
+		}
 	}
 
 	.selectTriangle {

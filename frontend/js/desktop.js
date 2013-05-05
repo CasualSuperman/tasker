@@ -245,8 +245,9 @@
 			}
 
 			var cell = $("<td />");
-			cell.text(iterDate.toString("dd"));
-			cell.data("date", iterDate.clone());
+			var cellNum = $("<div class='date' />");
+			cellNum.text(iterDate.toString("dd"));
+			cell.data("date", iterDate.clone()).append(cellNum);
 			row.append(cell);
 
 			if (iterDate.getMonth() !== date.getMonth()) {
@@ -259,6 +260,16 @@
 					iterDate.valueOf() === ui.selectedDate.valueOf()) {
 					cell.append($("<div class='selectTriangle' />"));
 				}
+				$.each(events, function(ignored, e) {
+					var happensOn = new XDate(e.startTime);
+					if (happensOn.clone().clearTime().valueOf() === iterDate.valueOf()) {
+						var eventDiv = $("<div class='event' />");
+						var duration = Math.round(e.duration / 1000 / 1000 / 1000 / 60); // Convert to Minutes
+						eventDiv.addClass(duration + "min");
+						eventDiv.text(e.name);
+						cell.append(eventDiv);
+					}
+				});
 			}
 
 			iterDate.addDays(1);
