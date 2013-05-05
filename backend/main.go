@@ -5,9 +5,12 @@ import (
 	"github.com/gosexy/db"
 	_ "github.com/gosexy/db/mysql"
 	"net/http"
+	"runtime"
 )
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	// This connects to a local mysql server.
 	sess, err := db.Open("mysql", dbSettings)
 
