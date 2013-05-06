@@ -132,16 +132,22 @@ $(formName).delegate("[name=repeatByMonth]", "change", function(e) {
 $(formName).change(generateSummary);
 $("select[name=frequency]", formName).change();
 
+var fillValue = function() {};
 // Preload the selected date to the form.
-var d = new XDate();
 var selectedDates = $(".selectTriangle").parent();
-console.log(selectedDates);
 if (selectedDates.length > 0) {
-	d = selectedDates.data("date");
+	var d = selectedDates.data("date");
 	console.log("Selected date is", d);
+	var today = d.toString("yyyy-MM-dd");
+	var displayString = d.toString("MMMM dd, yyyy");
+
+	var dates = $("input[type=date]");
+	fillValue = function() {
+		dates.val(displayString);
+	}
+	dates.attr("data-value", today);
 }
-var today = d.toString("yyyy-MM-dd");
-$("input[name=startDate]", formName).attr("data-value", today).pickadate({
+$("input[name=startDate]", formName).pickadate({
 	format: "mmmm d, yyyy",
 	formatSubmit: "yyyy-mm-dd",
 	onSelect: function() {
@@ -157,13 +163,14 @@ $("input[name=startDate]", formName).attr("data-value", today).pickadate({
 		}
 	}
 });
-$("input[name=endDate]", formName).attr("data-value", today).pickadate({
+$("input[name=endDate]", formName).pickadate({
 	format: "mmmm d, yyyy",
 	formatSubmit: "yyyy-mm-dd",
 	onSelect: function() {
 		var cal = $("input[name=startDate]").data("pickadate");
 	}
 });
+fillValue();
 
 $("input[name=startTime]").timepicker();
 $("input[name=startTime]").on("changeTime", function() {
