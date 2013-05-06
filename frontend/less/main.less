@@ -89,10 +89,18 @@ body {
 			padding: 2px;
 			position: absolute;
 			right: 0;
-			z-index: 2;
+			z-index: 1;
 
 			&.selected {
 				border-bottom: 1px solid;
+			}
+
+			.name {
+				display: inline-block;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+				width: 80%;
 			}
 
 			.time {

@@ -1,11 +1,17 @@
 <form id="eventForm">
+	<h2>Event name:</h2>
+	<input name="name" placeholder="Untitled Event"></input>
+
 	<h2>Starts on:</h2>
 	<input name="startDate" type="date"></input>
-	<input name="startTime" type="time"></input>
+	<input name="startTime" class="time"></input>
 
 	<h2>Ends on:</h2>
 	<input name="endDate" type="date"></input>
-	<input name="endTime" type="time"></input>
+	<input name="endTime" class="time"></input>
+
+	<h2>All day:</h2>
+	<input type="checkbox" name="addDay" /> This event lasts all day.
 
 	<h2>Repeats:</h2>
 	<select name="frequency">
@@ -102,7 +108,7 @@
 	<span class="typicn summary"></span><span id="summary" class="summary"></span>
 	</div>
 	<br />
-	<input type="button" value="Done" class="done" />
+	<input type="button" value="Save" class="done" />
 </form>
 
 <script>
@@ -125,12 +131,30 @@ $(formName).delegate("[name=repeatByMonth]", "change", function(e) {
 });
 $(formName).change(generateSummary);
 $("select[name=frequency]", formName).change();
-var d = new Date();
-var today = d.getFullYear() + "-" + (d.getMonth() < 9 ? "0" + (d.getMonth() + 1) : (d.getMonth() + 1)) + "-" + d.getDate();
+
+// Preload the selected date to the form.
+var d = new XDate();
+var selectedDates = $(".selectTriangle").parent();
+console.log(selectedDates);
+if (selectedDates.length > 0) {
+	d = selectedDates.data("date");
+	console.log("Selected date is", d);
+}
+var today = d.toString("yyyy-MM-dd");
 $("input[type=date]", formName).attr("data-value", today).pickadate({
 	format: "mmmm d, yyyy",
 	formatSubmit: "yyyy-mm-dd"
 });
+
+$("input[name=startTime]").timepicker();
+$("input[name=startTime]").on("changeTime", function() {
+	var start = $(this).val();
+	$("input[name=endTime]").timepicker("option", "minTime", start);
+}).on("change", function() {
+	var start = $(this).val();
+	$("input[name=endTime]").timepicker("option", "minTime", start);
+});
+$("input[name=endTime]").timepicker({"minTime": "12:00am","showDuration": true});
 
 function generateSummary() {
 	var summary = "Every ",

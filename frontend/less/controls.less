@@ -1,6 +1,6 @@
 @import "color";
 
-input {
+input, select {
 	background-color: @background;
 	border: 2px solid @grey;
 	font-size: 1em;
@@ -35,7 +35,7 @@ input {
 		color: @accent;
 	}
 
-	#repeat {
+	#addControls {
 		clear: both;
 		font-size: 0.4em;
 		padding-left: 2em;
@@ -65,5 +65,14 @@ input {
 		.right {
 			float: right;
 		}
+	}
+
+	.pickadate__frame {
+		margin-left: -1em;
+		margin-right: 0.4em;
+	}
+
+	.time {
+		width: 30%;
 	}
 }

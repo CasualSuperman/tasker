@@ -1,0 +1,2 @@
+(function(c){var d=[["su","sun","sunday"],["m","mon","monday"],["tu","tues","tuesday"],["w","wed","wednesday"],["th","thurs","thursday"],["f","fri","friday"],["sa","sat","saturday"]];$(window).on("resize",function(c){$("#month th").each(function(c,a){a=$(a);var f=a.text(),e=-1;$.each(d,function(a,b){var c=$.inArray(f,b);-1!==c&&(index=a,e=c)});var b=2;425>window.innerWidth?b=0:900>window.innerWidth&&(b=1);b!=e&&$(a).text(d[index][b])})});$(function(){setTimeout(function(){$(window).trigger("resize")},
+200)})})(window);
