@@ -135,8 +135,14 @@ $("select[name=frequency]", formName).change();
 var fillValue = function() {};
 // Preload the selected date to the form.
 var selectedDates = $(".selectTriangle").parent();
+var d;
 if (selectedDates.length > 0) {
-	var d = selectedDates.data("date");
+	d = selectedDates.data("date");
+} else {
+	d = ui.currentDate;
+}
+
+if (d !== undefined) {
 	var today = d.toString("yyyy-MM-dd");
 	var displayString = d.toString("MMMM dd, yyyy");
 
@@ -149,6 +155,7 @@ if (selectedDates.length > 0) {
 	}
 	dates.attr("data-value", today);
 }
+
 $("input[name=startDate]", formName).pickadate({
 	format: "mmmm d, yyyy",
 	formatSubmit: "yyyy-mm-d",
