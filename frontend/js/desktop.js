@@ -293,6 +293,10 @@
 		month.text(monthNames[date.getMonth()].toLowerCase());
 		year.text(date.getFullYear());
 
+		var sidebarWidth = $("#month", root).css("padding-right");
+		calendar.css("padding-right", sidebarWidth);
+		month.css("margin-right", sidebarWidth);
+
 		var firstVisibleDate = date.clone()
 								   .setDate(1);
 		firstVisibleDate.addDays(-firstVisibleDate.getDay());
