@@ -1,5 +1,39 @@
 (function(global) {
 	"use strict";
+	var visibleApi = {
+		available: false
+	};
+
+	(function() {
+		var hidden, state, visibilityChange; 
+		if (typeof document.hidden !== "undefined") {
+			hidden = "hidden";
+			visibilityChange = "visibilitychange";
+			state = "visibilityState";
+		} else if (typeof document.mozHidden !== "undefined") {
+			hidden = "mozHidden";
+			visibilityChange = "mozvisibilitychange";
+			state = "mozVisibilityState";
+		} else if (typeof document.msHidden !== "undefined") {
+			hidden = "msHidden";
+			visibilityChange = "msvisibilitychange";
+			state = "msVisibilityState";
+		} else if (typeof document.webkitHidden !== "undefined") {
+			hidden = "webkitHidden";
+			visibilityChange = "webkitvisibilitychange";
+			state = "webkitVisibilityState";
+		}
+
+		if (hidden !== undefined) {
+			visibleApi = {
+				available: true,
+				hidden: hidden,
+				visibilityChange: visibilityChange,
+				state: state
+			};
+		}
+	}());
+
 	function DesktopUI(root, calendar) {
 		var _this = this;
 		this.model = calendar;
@@ -30,12 +64,46 @@
 		displayControls(calendar, this.controls);
 
 		this.events = [];
-		calendar.getEventsForMonth(this.currentDate.clone() ,function(data) {
+		calendar.getEventsForMonth(this.currentDate.clone(), function(data) {
 			if (data.err === undefined) {
 				_this.events = data.events;
 				displayMonth(_this.container, _this, data.events);
 			}
 		});
+
+		var today = XDate.today();
+		var battery = navigator.battery || navigator.webkitBattery || navigator.mozBattery;
+
+
+		var checkForNextDay = function() {
+			console.log("Checking for next day.");
+			if (XDate.today().valueOf() !== today.valueOf()) {
+				today = XDate.today();
+				displayMonth(_this,container, _this, _this.events);
+			}
+
+			var timeout = 500;
+			if (battery && !battery.charging) {
+				timeout *= 4;
+			}
+
+			// If we're invisible, don't schedule a new event.
+			if (!visibleApi.available || document[visibleApi.state] !== "hidden") {
+				return setTimeout(checkForNextDay, timeout);
+			}
+		};
+
+		checkForNextDay();
+
+		// If we can check for visibility, then we need to restart the checker when we flip back to the calendar.
+		if (visibleApi.available) {
+			document.addEventListener(visibleApi.visibilityChange, function() {
+				if (document[visibleApi.state] !== "hidden") {
+					console.log("Checking for next day on visibility change.");
+					checkForNextDay();
+				}
+			});
+		}
 	}
 
 	var fadeDuration = 300, // 300ms
@@ -48,6 +116,7 @@
 		$(this.container).fadeOut(fadeDuration, function() {
 			var display = this;
 			_this.model.getEventsForMonth(_this.currentDate.clone(), function(data) {
+				_this.events = data.events;
 				if (data.err === undefined) {
 					displayMonth(_this.container, _this, data.events);
 					$(window).trigger("resize");
@@ -254,7 +323,7 @@
 			if (iterDate.getMonth() !== date.getMonth()) {
 				cell.addClass("sideMonth");
 			} else {
-				if (iterDate.valueOf() === ui.model.getDate().valueOf()) {
+				if (iterDate.valueOf() === XDate.today().valueOf()) { //ui.model.getDate().valueOf()) {
 					cell.addClass("today");
 				}
 				if (ui.selectedDate !== null && 
