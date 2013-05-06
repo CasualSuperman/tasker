@@ -1,18 +1,37 @@
 (function(global) {
 	"use strict";
 	function Calendar(apiServer) {
-		this.loggedIn = false;
 		this.today = XDate.today();
-		this.setupDone = false;
-		this.apiBuffer = [];
 		this.apiServer = apiServer;
+
+		this.apiBuffer = [];
+
+		this.calendars = null;
+		this.loggedIn = null;
 
 		var _this = this;
 
 		// Find out if we are logged in.
 		apiServer.getLoggedIn(function(loggedIn) {
 			_this.loggedIn = loggedIn;
-			_this.setupDone = true;
+
+			if (loggedIn) {
+				apiServer.getCalendars(function(calendars) {
+					_this.calendars = calendars;
+
+					// Make sure we don't have any buffered calls to calendarColor.
+					for (var i = 0; i < _this.apiBuffer.length; i++) {
+						if (_this.apiBuffer[i][0] === "calendarColor") {
+							_this.apiBuffer[i][2](calendars[_this.apiBuffer[i][1]].color);
+							_this.apiBuffer.splice(i, 1);
+							i--;
+						}
+					}
+
+				});
+			} else {
+				_this.calendars = {};
+			}
 
 			// Make sure we don't have any buffered calls to loggedIn.
 			for (var i = 0; i < _this.apiBuffer.length; i++) {
@@ -23,8 +42,11 @@
 				}
 			}
 		});
-
 	}
+
+	Calendar.prototype.setupDone = function() {
+		return this.calendars !== null && this.loggedIn !== null;
+	};
 
 	Calendar.prototype.login = function(data, cb) {
 		var _this = this;
@@ -46,8 +68,16 @@
 		});
 	};
 
+	Calendar.prototype.getCalendarColor = function(cid, cb) {
+		if (this.setupDone()) {
+			cb(this.calendars[cid].color);
+		} else {
+			this.apiBuffer.push(["calendarColor", cid, cb]);
+		}
+	};
+
 	Calendar.prototype.getLoggedIn = function(cb) {
-		if (this.setupDone) {
+		if (this.setupDone()) {
 			cb(this.loggedIn);
 		} else {
 			this.apiBuffer.push(["loggedIn", cb]);

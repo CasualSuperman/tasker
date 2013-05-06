@@ -274,6 +274,7 @@
 				});
 
 				$.each(eventsOnDay, function(i, e) {
+					console.log("Processing event", e);
 					var eventDiv = $("<div class='event'><span class='name' /><span class='time' /></div>");
 					var duration = Math.round(e.duration / 1000 / 1000 / 1000 / 60); // Convert to Minutes
 					eventDiv.addClass(duration + "min")
@@ -282,6 +283,11 @@
 					$(".name", eventDiv).text(e.name);
 					$(".time", eventDiv).text(new XDate(e.startTime, true).toString("h(:mm)TT"));
 					cell.append(eventDiv);
+
+					ui.model.getCalendarColor(e.cid, function(color) {
+						console.log("Got calendar color for", e);
+						eventDiv.css({"border-color":"#"+color});
+					});
 				});
 			}
 

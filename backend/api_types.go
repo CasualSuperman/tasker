@@ -43,6 +43,27 @@ func defaultUserResponse() apiUserResponse {
 	}
 }
 
+type calendar struct {
+	Cid   int    `json:"cid"`
+	Name  string `json:"name"`
+	Color string `json:"color"`
+}
+
+type calendarList []calendar
+
+func (c *calendarList) Json() []byte {
+	data, _ := json.Marshal(c)
+	return data
+}
+
+func (c calendarList) Type() string {
+	return "text/plain"
+}
+
+func (c calendarList) Code() int {
+	return http.StatusOK
+}
+
 type eventsList struct {
 	Events []Event      `json:"events"`
 	StartDate time.Time `json:"startDate"`

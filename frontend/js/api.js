@@ -38,5 +38,12 @@
 		}).done(cb);
 	};
 
+	API.prototype.getCalendars = function(cb) {
+		$.ajax({
+			url: this.server + "calendars",
+			dataType: "json"
+		}).done(cb);
+	};
+
 	global.API = API;
 })(window);

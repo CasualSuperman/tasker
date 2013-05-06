@@ -12,6 +12,29 @@ const timeFormat = "2006-01-02 15:04"
 
 var defaultLocation = time.UTC
 
+func calendars(res http.ResponseWriter, req *http.Request, sess db.Database) apiResponse {
+	session, _ := store.Get(req, "calendar")
+
+	if val, ok := session.Values["logged-in"]; ok && val.(bool) {
+		uid := int(session.Values["uid"].(int64))
+		calendarTable := sess.ExistentCollection("Calendars")
+
+		calendarResults, err := calendarTable.FindAll(db.Cond{"owner": uid})
+
+		calendars := calendarList(make([]calendar, len(calendarResults)))
+
+		if err == nil {
+			for i, cal := range calendarResults {
+				calendars[i].Cid = int(cal.GetInt("cid"))
+				calendars[i].Name = cal.GetString("name")
+				calendars[i].Color = cal.GetString("color")
+			}
+		}
+		return &calendars
+	}
+	return apiUserResponse{false, "Must be logged in.", http.StatusOK}
+}
+
 func eventsInRange(res http.ResponseWriter, req *http.Request, sess db.Database) apiResponse {
 	session, _ := store.Get(req, "calendar")
 	startDate, err := time.Parse(dateFormat, req.FormValue("start"))
