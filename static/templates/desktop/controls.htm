@@ -1,4 +1,5 @@
 <div id="loginIndicator" class="typicn user"></div>
+<div id="panelClose" class="typicn times"></div>
 <div id="addControls"></div>
 <div id="navigation">
 	<div id="add" class="typicn plus"></div>
@@ -10,6 +11,16 @@
 $("#add").click(function() {
 	$(this).fadeOut();
 	ui.slideOutControls();
-	$("#addControls").load("templates/desktop/event.htm");
+	$("#addControls").show().load("templates/desktop/event.htm");
+	$("#panelClose").fadeIn();
+});
+
+$("#panelClose").click(function() {
+	$(this).fadeOut();
+	$("#add").fadeIn();
+	ui.slideInControls();
+	$("#addControls").fadeOut(function() {
+		$(this).empty();
+	});
 });
 </script>

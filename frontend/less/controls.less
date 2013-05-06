@@ -23,6 +23,10 @@ input, select {
 	width: 30px;
 	z-index: 1;
 
+	.typicn {
+		cursor: pointer;
+	}
+
 	& #loginIndicator {
 		float: right;
 	}
@@ -33,6 +37,17 @@ input, select {
 
 	.typicn:hover {
 		color: @accent;
+	}
+
+	#panelClose {
+		color: @grey;
+		display: none;
+		float: left;
+		font-size: 0.8em;
+
+		&:hover {
+			color: @darkgrey;
+		}
 	}
 
 	#addControls {
