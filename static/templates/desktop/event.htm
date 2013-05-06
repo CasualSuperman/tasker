@@ -141,9 +141,28 @@ if (selectedDates.length > 0) {
 	console.log("Selected date is", d);
 }
 var today = d.toString("yyyy-MM-dd");
-$("input[type=date]", formName).attr("data-value", today).pickadate({
+$("input[name=startDate]", formName).attr("data-value", today).pickadate({
 	format: "mmmm d, yyyy",
-	formatSubmit: "yyyy-mm-dd"
+	formatSubmit: "yyyy-mm-dd",
+	onSelect: function() {
+		var cal = $("input[name=endDate]").data("pickadate");
+		var currEndDate = new XDate(cal.getDate());
+		var currStartDate = new XDate(this.getDate());
+
+		var targetDate = currStartDate.toString("yyyy-MM-dd").split("-").map(function(v){return +v});
+		console.log("Target date:", targetDate);
+		cal.setDateLimit(targetDate);
+		if (currEndDate < currStartDate || cal.getDate() === "") {
+			cal.setDate.apply(cal, targetDate);
+		}
+	}
+});
+$("input[name=endDate]", formName).attr("data-value", today).pickadate({
+	format: "mmmm d, yyyy",
+	formatSubmit: "yyyy-mm-dd",
+	onSelect: function() {
+		var cal = $("input[name=startDate]").data("pickadate");
+	}
 });
 
 $("input[name=startTime]").timepicker();
