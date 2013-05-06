@@ -76,7 +76,6 @@
 
 
 		var checkForNextDay = function() {
-			console.log("Checking for next day.");
 			if (XDate.today().valueOf() !== today.valueOf()) {
 				today = XDate.today();
 				displayMonth(_this,container, _this, _this.events);
@@ -99,7 +98,7 @@
 		if (visibleApi.available) {
 			document.addEventListener(visibleApi.visibilityChange, function() {
 				if (document[visibleApi.state] !== "hidden") {
-					console.log("Checking for next day on visibility change.");
+					console.log("Visible again. Catching up.");
 					checkForNextDay();
 				}
 			});
@@ -343,7 +342,6 @@
 				});
 
 				$.each(eventsOnDay, function(i, e) {
-					console.log("Processing event", e);
 					var eventDiv = $("<div class='event'><span class='name' /><span class='time' /></div>");
 					var duration = Math.round(e.duration / 1000 / 1000 / 1000 / 60); // Convert to Minutes
 					eventDiv.addClass(duration + "min")
@@ -354,7 +352,6 @@
 					cell.append(eventDiv);
 
 					ui.model.getCalendarColor(e.cid, function(color) {
-						console.log("Got calendar color for", e);
 						eventDiv.css({"border-color":"#"+color});
 					});
 				});

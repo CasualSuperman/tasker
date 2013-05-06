@@ -137,7 +137,6 @@ var fillValue = function() {};
 var selectedDates = $(".selectTriangle").parent();
 if (selectedDates.length > 0) {
 	var d = selectedDates.data("date");
-	console.log("Selected date is", d);
 	var today = d.toString("yyyy-MM-dd");
 	var displayString = d.toString("MMMM dd, yyyy");
 
@@ -156,7 +155,6 @@ $("input[name=startDate]", formName).pickadate({
 		var currStartDate = new XDate(this.getDate());
 
 		var targetDate = currStartDate.toString("yyyy-MM-dd").split("-").map(function(v){return +v});
-		console.log("Target date:", targetDate);
 		cal.setDateLimit(targetDate);
 		if (currEndDate < currStartDate || cal.getDate() === "") {
 			cal.setDate.apply(cal, targetDate);
