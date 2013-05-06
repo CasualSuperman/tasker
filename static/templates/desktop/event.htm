@@ -4,14 +4,14 @@
 
 	<h2>Starts on:</h2>
 	<input name="startDate" type="date"></input>
-	<input name="startTime" class="time"></input>
+	<input name="startTime" class="time" value="9:00am"></input>
 
 	<h2>Ends on:</h2>
 	<input name="endDate" type="date"></input>
-	<input name="endTime" class="time"></input>
+	<input name="endTime" class="time" value="10:00am"></input>
 
 	<h2>All day:</h2>
-	<input type="checkbox" name="addDay" /> This event lasts all day.
+	<input type="checkbox" name="allDay" /> This event lasts all day.
 
 	<h2>Repeats:</h2>
 	<select name="frequency">
@@ -143,12 +143,15 @@ if (selectedDates.length > 0) {
 	var dates = $("input[type=date]");
 	fillValue = function() {
 		dates.val(displayString);
+		dates.each(function(ignored, input) {
+			$("[name=" + $(input).attr("name") + "_submit]").val(today);
+		});
 	}
 	dates.attr("data-value", today);
 }
 $("input[name=startDate]", formName).pickadate({
 	format: "mmmm d, yyyy",
-	formatSubmit: "yyyy-mm-dd",
+	formatSubmit: "yyyy-mm-d",
 	onSelect: function() {
 		var cal = $("input[name=endDate]").data("pickadate");
 		var currEndDate = new XDate(cal.getDate());
@@ -163,7 +166,7 @@ $("input[name=startDate]", formName).pickadate({
 });
 $("input[name=endDate]", formName).pickadate({
 	format: "mmmm d, yyyy",
-	formatSubmit: "yyyy-mm-dd",
+	formatSubmit: "yyyy-mm-d",
 	onSelect: function() {
 		var cal = $("input[name=startDate]").data("pickadate");
 	}
