@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS Users (
 # Every calendar must be visible by at least one person, or we have no reason
 # to store it.  This allows us to make the uid part of the primary key.
 CREATE TABLE IF NOT EXISTS Calendars (
-	cid INT NOT NULL,
+	cid INT NOT NULL AUTO_INCREMENT,
 	owner INT NOT NULL,
 	# Use the calendar id and the user id as a paired primary key.
 	PRIMARY KEY(cid),
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS Calendars (
 
 # Unique event ids allow for sharing.
 CREATE TABLE IF NOT EXISTS Events (
-	eid INT NOT NULL,
+	eid INT NOT NULL AUTO_INCREMENT,
 	PRIMARY KEY(eid),
 
 	creator INT NOT NULL,
