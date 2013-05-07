@@ -82,3 +82,20 @@ func (e *eventsList) Type() string {
 func (e *eventsList) Code() int {
 	return http.StatusOK
 }
+
+type apiFormResponse struct {
+	Success bool `json:"success"`
+	ErrFields []string `json:"errFields,omitempty"`
+	ErrMsgs []string `json:"errMsgs,omitempty"`
+}
+
+func (fr *apiFormResponse) Json() []byte {
+	data, _ := json.Marshal(fr)
+	return data
+}
+func (fr *apiFormResponse) Type() string {
+	return "text/plain"
+}
+func (fr *apiFormResponse) Code() int {
+	return http.StatusOK
+}

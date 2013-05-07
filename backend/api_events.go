@@ -105,19 +105,51 @@ func createEvent(res http.ResponseWriter, req *http.Request, sess db.Database) a
 	uid := int(session.Values["uid"].(int64))
 	event, errFields, errMsgs := ParseHTTP(req)
 	event["creator"] = uid
-	event["calendar"] = 1
 
 	fmt.Println(event)
 
 	if len(errFields) > 0 {
-		_ = errMsgs
+		return &apiFormResponse{false, errFields, errMsgs}
 	} else {
-		eventTable := sess.ExistentCollection("Events")
-		_, err := eventTable.Append(event)
-		if err != nil {
-			return apiUserResponse{false, err.Error(), http.StatusOK}
+		if checkUserOwnsCalendar(sess, uid, event["calendar"].(int)) {
+			eventTable := sess.ExistentCollection("Events")
+			_, err := eventTable.Append(event)
+			if err != nil {
+				fmt.Println(err)
+				return &apiFormResponse{false, nil, nil}
+			}
+			return &apiFormResponse{true, nil, nil}
+		} else {
+			return &apiFormResponse{
+				false,
+				[]string{"calendar"},
+				[]string{"You don't have permission to use that calendar."},
+			}
 		}
 	}
 
 	return apiUserResponse{}
+}
+
+func checkUserOwnsCalendar(sess db.Database, uid, cal int) bool {
+	calendars := sess.ExistentCollection("Calendars")
+
+	num, err := calendars.Count(db.Cond{"cid":cal}, db.Cond{"owner":uid})
+	if err != nil {
+		fmt.Println(err)
+		return false
+	} else if num > 0 {
+		return true
+	}
+
+	sharedCalendars := sess.ExistentCollection("CalendarShares")
+	num, err = sharedCalendars.Count(db.Cond{"cid":cal}, db.Cond{"uid":uid})
+	if err != nil {
+		fmt.Println(err)
+		return false
+	} else if num > 0 {
+		return true
+	}
+
+	return false
 }

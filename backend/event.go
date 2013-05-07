@@ -60,16 +60,25 @@ func (e *Event) ParseDB(entry db.Item) {
 	e.Eid = int(entry.GetInt("eid"))
 }
 
-func ParseHTTP(req *http.Request) (map[string]interface{}, []string, []error) {
+func ParseHTTP(req *http.Request) (map[string]interface{}, []string, []string) {
 	e := make(map[string]interface{})
 	errFields := make([]string, 0)
-	errErrors := make([]error, 0)
+	errErrors := make([]string, 0)
 
 	// Get the event name
 	e["name"] = req.FormValue("name")
 	if req.FormValue("name") == "" {
 		errFields = append(errFields, "name")
-		errErrors = append(errErrors, fmt.Errorf("Name is required."))
+		errErrors = append(errErrors, "Name is required.")
+	}
+
+	var err error
+
+	// Get the calendar we want to use.
+	e["calendar"], err = getIntFromHTTP(req, "calendar")
+	if err != nil {
+		errFields = append(errFields, "calendar")
+		errErrors = append(errErrors, "Invalid calendar.")
 	}
 
 	// Get the event start time
@@ -79,7 +88,7 @@ func ParseHTTP(req *http.Request) (map[string]interface{}, []string, []error) {
 	if err != nil {
 		fmt.Println(err)
 		errFields = append(errFields, "startTime")
-		errErrors = append(errErrors, fmt.Errorf("Start date format incorrect."))
+		errErrors = append(errErrors, "Start date format incorrect.")
 	}
 
 	// Get the event end time
@@ -88,7 +97,7 @@ func ParseHTTP(req *http.Request) (map[string]interface{}, []string, []error) {
 	e["end"] = endTime.Format(timeFormat)
 	if err != nil {
 		errFields = append(errFields, "endTime")
-		errErrors = append(errErrors, fmt.Errorf("End date format incorrect."))
+		errErrors = append(errErrors, "End date format incorrect.")
 	}
 
 	// Get the repeat type
@@ -106,7 +115,7 @@ func ParseHTTP(req *http.Request) (map[string]interface{}, []string, []error) {
 		e["repeatType"] = YearlyRepeat
 	default:
 		errFields = append(errFields, "frequency")
-		errErrors = append(errErrors, fmt.Errorf("Unrecognized repeat frequency."))
+		errErrors = append(errErrors, "Unrecognized repeat frequency.")
 	}
 
 	e["allDay"] = req.FormValue("allDay") == "on"
@@ -117,7 +126,7 @@ func ParseHTTP(req *http.Request) (map[string]interface{}, []string, []error) {
 		e["repeatFrequency"], err = getIntFromHTTP(req, "skip")
 		if err != nil {
 			errFields = append(errFields, "skip")
-			errErrors = append(errErrors, fmt.Errorf("Improper skip amount."))
+			errErrors = append(errErrors, "Improper skip amount.")
 		}
 
 		doesEnd := req.FormValue("ends")
@@ -127,18 +136,18 @@ func ParseHTTP(req *http.Request) (map[string]interface{}, []string, []error) {
 			e["repeatUntil"] = nil
 		case "afterN":
 			errFields = append(errFields, "afterN")
-			errErrors = append(errErrors, fmt.Errorf("After X times unavailable."))
+			errErrors = append(errErrors, "After X times unavailable.")
 		case "afterDate":
 			lastStr := req.FormValue("afterDate_submit")
 			lastTime, err := time.Parse(dateFormat, lastStr)
 			e["repeatUntil"] = lastTime.Format(dateFormat)
 			if err != nil {
 				errFields = append(errFields, "afterDate")
-				errErrors = append(errErrors, fmt.Errorf("Last date format incorrect."))
+				errErrors = append(errErrors, "Last date format incorrect.")
 			}
 		default:
 			errFields = append(errFields, "ends")
-			errErrors = append(errErrors, fmt.Errorf("Unrecognized repeat stop."))
+			errErrors = append(errErrors, "Unrecognized repeat stop.")
 		}
 
 		if e["repeatType"] == MonthlyRepeat {
@@ -161,7 +170,7 @@ func ParseHTTP(req *http.Request) (map[string]interface{}, []string, []error) {
 
 				if dayBitMask == 0 {
 					errFields = append(errFields, "daysOfWeek")
-					errErrors = append(errErrors, fmt.Errorf("Please select at least one day of the week."))
+					errErrors = append(errErrors, "Please select at least one day of the week.")
 				}
 
 				// Figure out which week of the month we repeat on.
@@ -169,7 +178,7 @@ func ParseHTTP(req *http.Request) (map[string]interface{}, []string, []error) {
 				weekInMonthInt, err := strconv.Atoi(weekInMonthStr)
 				if err != nil {
 					errFields = append(errFields, "weekInMonth")
-					errErrors = append(errErrors, fmt.Errorf("Somehow you messed up the form."))
+					errErrors = append(errErrors, "Somehow you messed up the form.")
 				}
 				e["weekOfMonth"] = weekInMonthInt
 			}
@@ -276,6 +285,6 @@ func makeSkips(bits uint8) []int {
 }
 
 func getIntFromHTTP(req *http.Request, field string) (int, error) {
-	tempStr := req.FormValue("repeatType")
+	tempStr := req.FormValue(field)
 	return strconv.Atoi(tempStr)
 }
