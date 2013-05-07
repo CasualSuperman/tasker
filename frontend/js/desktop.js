@@ -357,7 +357,7 @@
 				});
 
 				eventsOnDay.sort(function(a, b) {
-					return a.startTime - b.startTime;
+					return new XDate(b.startTime).diffMinutes(new XDate(a.startTime));
 				});
 
 				$.each(eventsOnDay, function(i, e) {
