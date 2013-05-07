@@ -76,10 +76,20 @@
 
 		// Expire events that happened before now.
 		var expireOldEvents = function() {
-			displayMonth(_this.container, _this, _this.events);
-			var timeout = 1000 * 30; // 30 seconds
+			var now = new XDate();
+
+			$(".event.future", _this.container).each(function(i, div) {
+				var e = $(div).data("event");
+				var startTime = new XDate(e.startTime, true).setUTCMode(false, true);
+				var endTime = startTime.clone().addMilliseconds(e.duration / 1000000);
+				if (endTime.diffMinutes(now) >= 0) {
+					$(div).removeClass("future");
+				}
+			});
+
+			var timeout = 1000 * 10; // 10 seconds
 			if (battery && !battery.charging) {
-				timeout *= 6; // 3 minutes
+				timeout *= 6; // 1 minute
 			}
 
 			// If we're invisible, don't schedule a new event.
@@ -91,7 +101,14 @@
 		var checkForNextDay = function() {
 			if (XDate.today().valueOf() !== today.valueOf()) {
 				today = XDate.today();
-				displayMonth(_this.container, _this, _this.events);
+				$(".today", _this.container).removeClass("today");
+				$("td", _this.container).each(function(i, td) {
+					var date = $(td).data("date");
+					if (date.valueOf() === XDate.today().valueOf()) {
+						$(td).addClass("today");
+						return false;
+					}
+				});
 			}
 
 			var timeout = 500;
