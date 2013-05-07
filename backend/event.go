@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/gosexy/db"
+	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -20,12 +22,14 @@ type Event struct {
 	Name      string        `json:"name"`
 	StartTime time.Time     `json:"startTime"`
 	Duration  time.Duration `json:"duration"`
-	Cid       int           `json:"cid"`
+	Calendar  int           `json:"cid"`
 	Eid       int           `json:"eid"`
+	creator   int
 
-	allDay    bool
-	startDate time.Time
-	endDate   time.Time
+	allDay bool
+
+	start time.Time
+	end   time.Time
 
 	repeatType      RepeatType
 	repeatFrequency int
@@ -33,15 +37,12 @@ type Event struct {
 	repeatUntil time.Time
 	days        uint8
 	fullWeek    bool
+	weekOfMonth int
 }
 
-func (e *Event) Parse(entry db.Item) {
-	fmt.Printf("%+v\n", entry)
-
-	fmt.Println(time.Parse(timeFormat, entry.GetString("start")))
-
-	e.startDate, _ = time.Parse(timeFormat, entry.GetString("start"))
-	e.endDate, _ = time.Parse(timeFormat, entry.GetString("end"))
+func (e *Event) ParseDB(entry db.Item) {
+	e.start, _ = time.Parse(timeFormat, entry.GetString("start"))
+	e.end, _ = time.Parse(timeFormat, entry.GetString("end"))
 
 	e.repeatType = RepeatType(entry.GetInt("repeattype"))
 
@@ -53,10 +54,129 @@ func (e *Event) Parse(entry db.Item) {
 		e.repeatUntil = e.repeatUntil.AddDate(0, 0, 1) // The day after the last day we can be on.
 	}
 
-	e.Duration = time.Since(e.startDate) - time.Since(e.endDate)
+	e.Duration = time.Since(e.start) - time.Since(e.end)
 	e.Name = entry.GetString("name")
-	e.Cid = int(entry.GetInt("calendar"))
+	e.Calendar = int(entry.GetInt("calendar"))
 	e.Eid = int(entry.GetInt("eid"))
+}
+
+func ParseHTTP(req *http.Request) (map[string]interface{}, []string, []error) {
+	e := make(map[string]interface{})
+	errFields := make([]string, 0)
+	errErrors := make([]error, 0)
+
+	// Get the event name
+	e["name"] = req.FormValue("name")
+	if req.FormValue("name") == "" {
+		errFields = append(errFields, "name")
+		errErrors = append(errErrors, fmt.Errorf("Name is required."))
+	}
+
+	// Get the event start time
+	startStr := req.FormValue("startDate_submit") + " " + req.FormValue("startTime")
+	startTime, err := time.Parse(formFormat, startStr)
+	e["start"] = startTime.Format(timeFormat)
+	if err != nil {
+		fmt.Println(err)
+		errFields = append(errFields, "startTime")
+		errErrors = append(errErrors, fmt.Errorf("Start date format incorrect."))
+	}
+
+	// Get the event end time
+	endStr := req.FormValue("endDate_submit") + " " + req.FormValue("endTime")
+	endTime, err := time.Parse(formFormat, endStr)
+	e["end"] = endTime.Format(timeFormat)
+	if err != nil {
+		errFields = append(errFields, "endTime")
+		errErrors = append(errErrors, fmt.Errorf("End date format incorrect."))
+	}
+
+	// Get the repeat type
+	repeatStr := req.FormValue("frequency")
+	switch repeatStr {
+	case "none":
+		e["repeatType"] = NoRepeat
+	case "daily":
+		e["repeatType"] = DailyRepeat
+	case "weekly":
+		e["repeatType"] = WeeklyRepeat
+	case "monthly":
+		e["repeatType"] = MonthlyRepeat
+	case "yearly":
+		e["repeatType"] = YearlyRepeat
+	default:
+		errFields = append(errFields, "frequency")
+		errErrors = append(errErrors, fmt.Errorf("Unrecognized repeat frequency."))
+	}
+
+	e["allDay"] = req.FormValue("allDay") == "on"
+
+	// We only need to get these if we're gonna repeat.
+	if e["repeatType"] != NoRepeat {
+		// The number of things to skip.
+		e["repeatFrequency"], err = getIntFromHTTP(req, "skip")
+		if err != nil {
+			errFields = append(errFields, "skip")
+			errErrors = append(errErrors, fmt.Errorf("Improper skip amount."))
+		}
+
+		doesEnd := req.FormValue("ends")
+
+		switch doesEnd {
+		case "never":
+			e["repeatUntil"] = nil
+		case "afterN":
+			errFields = append(errFields, "afterN")
+			errErrors = append(errErrors, fmt.Errorf("After X times unavailable."))
+		case "afterDate":
+			lastStr := req.FormValue("afterDate_submit")
+			lastTime, err := time.Parse(dateFormat, lastStr)
+			e["repeatUntil"] = lastTime.Format(dateFormat)
+			if err != nil {
+				errFields = append(errFields, "afterDate")
+				errErrors = append(errErrors, fmt.Errorf("Last date format incorrect."))
+			}
+		default:
+			errFields = append(errFields, "ends")
+			errErrors = append(errErrors, fmt.Errorf("Unrecognized repeat stop."))
+		}
+
+		if e["repeatType"] == MonthlyRepeat {
+			if req.FormValue("repeatByMonth") == "day" {
+				e["fullWeek"] = req.FormValue("fullWeek") == "on"
+
+				// Figure out the bitmask of which days we repeat on.
+				days := req.Form["daysOfWeek"]
+				dayBitMask := 0
+				daySlice := []string{"Su", "M", "Tu", "W", "Th", "F", "Sa"}
+				for _, str := range daySlice {
+					dayBitMask <<= 1
+					for _, matchStr := range days {
+						if str == matchStr {
+							dayBitMask |= 1
+						}
+					}
+				}
+				e["days"] = uint8(dayBitMask)
+
+				if dayBitMask == 0 {
+					errFields = append(errFields, "daysOfWeek")
+					errErrors = append(errErrors, fmt.Errorf("Please select at least one day of the week."))
+				}
+
+				// Figure out which week of the month we repeat on.
+				weekInMonthStr := req.FormValue("weekInMonth")
+				weekInMonthInt, err := strconv.Atoi(weekInMonthStr)
+				if err != nil {
+					errFields = append(errFields, "weekInMonth")
+					errErrors = append(errErrors, fmt.Errorf("Somehow you messed up the form."))
+				}
+				e["weekOfMonth"] = weekInMonthInt
+			}
+		}
+	}
+
+	return e, errFields, errErrors
 }
 
 func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
@@ -65,9 +185,9 @@ func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
 	// start and end times. If it does, then send it. Always close the
 	// channel.
 	case NoRepeat:
-		if e.startDate.Before(end) && e.endDate.After(start) {
+		if e.start.Before(end) && e.end.After(start) {
 			var eventCopy Event = *e
-			eventCopy.StartTime = e.startDate
+			eventCopy.StartTime = e.start
 			resp <- eventCopy
 		}
 
@@ -75,8 +195,8 @@ func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
 	// and iterate through until we hit the end.
 	case DailyRepeat:
 		// Make sure the repeated date range is within the range we're scanning.
-		if start.Before(e.repeatUntil) && end.After(e.startDate) {
-			startDay := e.startDate
+		if start.Before(e.repeatUntil) && end.After(e.start) {
+			startDay := e.start
 			for startDay.Before(start) {
 				startDay = startDay.AddDate(0, 0, e.repeatFrequency)
 			}
@@ -89,9 +209,9 @@ func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
 		}
 
 	case WeeklyRepeat:
-		if start.Before(e.repeatUntil) && end.After(e.startDate) {
+		if start.Before(e.repeatUntil) && end.After(e.start) {
 			fmt.Println(e)
-			startDate := e.startDate
+			startDate := e.start
 			for startDate.Before(start) {
 				startDate = startDate.AddDate(0, 0, e.repeatFrequency*7)
 			}
@@ -105,7 +225,7 @@ func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
 			skips[len(skips)-1] += 7 * (e.repeatFrequency - 1)
 			skipsIndex := 0
 
-			for startDate.Before(start) || startDate.Before(e.startDate) {
+			for startDate.Before(start) || startDate.Before(e.start) {
 				startDate = startDate.AddDate(0, 0, skips[skipsIndex])
 
 				skipsIndex++
@@ -153,4 +273,9 @@ func makeSkips(bits uint8) []int {
 	skips = skips[1 : len(skips)-1]
 	fmt.Println(skips)
 	return skips
+}
+
+func getIntFromHTTP(req *http.Request, field string) (int, error) {
+	tempStr := req.FormValue("repeatType")
+	return strconv.Atoi(tempStr)
 }

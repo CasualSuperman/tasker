@@ -9,6 +9,7 @@ import (
 
 const dateFormat = "2006-01-02"
 const timeFormat = "2006-01-02 15:04"
+const formFormat = "2006-01-02 3:04pm"
 
 var defaultLocation = time.UTC
 
@@ -48,43 +49,75 @@ func eventsInRange(res http.ResponseWriter, req *http.Request, sess db.Database)
 		return apiUserResponse{false, "Unable to parse end date.", http.StatusOK}
 	}
 
-	if val, ok := session.Values["logged-in"]; ok && val.(bool) {
-		uid := int(session.Values["uid"].(int64))
-		eventTable := sess.ExistentCollection("Events")
-
-		eventResults, err := eventTable.FindAll(db.Cond{"creator": uid})
-
-		events := make([]Event, len(eventResults))
-		eventsInRange := make([]Event, 0)
-
-		if err == nil {
-			for i, event := range eventResults {
-				eventChan := make(chan Event)
-				(&events[i]).Parse(event)
-				go events[i].FindInRange(startDate, endDate, eventChan)
-
-				var ok bool = true
-				var e Event
-
-				for ok {
-					e, ok = <-eventChan
-					if ok {
-						eventsInRange = append(eventsInRange, e)
-					}
-					fmt.Println(e)
-				}
-			}
-		}
+	if val, ok := session.Values["logged-in"]; !ok || !val.(bool) {
 		return &eventsList{
-			eventsInRange,
+			[]Event{},
 			startDate,
 			endDate,
 		}
 	}
+
+	uid := int(session.Values["uid"].(int64))
+	eventTable := sess.ExistentCollection("Events")
+
+	eventResults, err := eventTable.FindAll(db.Cond{"creator": uid})
+
+	events := make([]Event, len(eventResults))
+	eventsInRange := make([]Event, 0)
+
+	if err == nil {
+		for i, event := range eventResults {
+			eventChan := make(chan Event)
+			(&events[i]).ParseDB(event)
+			go events[i].FindInRange(startDate, endDate, eventChan)
+
+			var ok bool = true
+			var e Event
+
+			for ok {
+				e, ok = <-eventChan
+				if ok {
+					eventsInRange = append(eventsInRange, e)
+				}
+				fmt.Println(e)
+			}
+		}
+	}
+
 	return &eventsList{
-		[]Event{},
+		eventsInRange,
 		startDate,
 		endDate,
 	}
+}
 
+func createEvent(res http.ResponseWriter, req *http.Request, sess db.Database) apiResponse {
+	session, _ := store.Get(req, "calendar")
+
+	if val, ok := session.Values["logged-in"]; !ok || !val.(bool) {
+		return apiUserResponse{
+			false,
+			"Please register to create an event.",
+			http.StatusOK,
+		}
+	}
+
+	uid := int(session.Values["uid"].(int64))
+	event, errFields, errMsgs := ParseHTTP(req)
+	event["creator"] = uid
+	event["calendar"] = 1
+
+	fmt.Println(event)
+
+	if len(errFields) > 0 {
+		_ = errMsgs
+	} else {
+		eventTable := sess.ExistentCollection("Events")
+		_, err := eventTable.Append(event)
+		if err != nil {
+			return apiUserResponse{false, err.Error(), http.StatusOK}
+		}
+	}
+
+	return apiUserResponse{}
 }

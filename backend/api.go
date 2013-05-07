@@ -28,6 +28,7 @@ var handlers = map[string]handlerFunc{
 	"user/logout":   userLogout,
 	"user/info":     userInfo,
 	"events/range":  eventsInRange,
+	"events/create": createEvent,
 	"calendars":     calendars,
 }
 
