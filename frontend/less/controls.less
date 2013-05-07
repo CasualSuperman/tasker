@@ -18,6 +18,7 @@ input, select {
 	color: @darkgrey;
 	font-size: 1.8em;
 	height: 100%;
+	overflow: hidden;
 	position: absolute;
 	right: 0;
 	width: 30px;
@@ -40,14 +41,24 @@ input, select {
 	}
 
 	#panelClose {
+		border: 3px solid @grey;
+		border-radius: 1em;
 		color: @grey;
 		display: none;
 		float: left;
 		font-size: 0.8em;
+		height: 1em;
+		margin-top: -0.15em;
+		margin-left: -0.15em;
 
 		&:hover {
+			border-color: @darkgrey;
 			color: @darkgrey;
 		}
+		 &:before {
+			position: relative;
+			top: 2px;
+		 }
 	}
 
 	#addControls {
