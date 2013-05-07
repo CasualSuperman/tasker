@@ -42,7 +42,13 @@
 		$.ajax({
 			url: this.server + "calendars",
 			dataType: "json"
-		}).done(cb);
+		}).done(function(data) {
+			var calendarMap = {};
+			for (var i = 0; i < data.length; i++) {
+				calendarMap[data[i].cid] = data[i];
+			}
+			cb(calendarMap);
+		});
 	};
 
 	global.API = API;
