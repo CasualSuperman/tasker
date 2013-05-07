@@ -65,9 +65,9 @@ func (c calendarList) Code() int {
 }
 
 type eventsList struct {
-	Events []Event      `json:"events"`
+	Events    []Event   `json:"events"`
 	StartDate time.Time `json:"startDate"`
-	EndDate time.Time   `json:"endDate"`
+	EndDate   time.Time `json:"endDate"`
 }
 
 func (e *eventsList) Json() []byte {

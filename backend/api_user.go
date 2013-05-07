@@ -188,7 +188,7 @@ func userActivate(res http.ResponseWriter, req *http.Request, sess db.Database) 
 				calendars := sess.ExistentCollection("Calendars")
 				calendars.Append(map[string]interface{}{
 					"owner": uid,
-					"name": "Your Calendar",
+					"name":  "Your Calendar",
 				})
 
 				resp.Succeed()

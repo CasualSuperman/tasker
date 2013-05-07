@@ -17,22 +17,22 @@ const (
 )
 
 type Event struct {
-	Name string            `json:"name"`
-	StartTime time.Time    `json:"startTime"`
-	Duration time.Duration `json:"duration"`
-	Cid int				   `json:"cid"`
-	Eid int				   `json:"eid"`
+	Name      string        `json:"name"`
+	StartTime time.Time     `json:"startTime"`
+	Duration  time.Duration `json:"duration"`
+	Cid       int           `json:"cid"`
+	Eid       int           `json:"eid"`
 
-	allDay bool
+	allDay    bool
 	startDate time.Time
-	endDate time.Time
+	endDate   time.Time
 
-	repeatType RepeatType
+	repeatType      RepeatType
 	repeatFrequency int
 
 	repeatUntil time.Time
-	days uint8
-	fullWeek bool
+	days        uint8
+	fullWeek    bool
 }
 
 func (e *Event) Parse(entry db.Item) {
@@ -41,7 +41,7 @@ func (e *Event) Parse(entry db.Item) {
 	fmt.Println(time.Parse(timeFormat, entry.GetString("start")))
 
 	e.startDate, _ = time.Parse(timeFormat, entry.GetString("start"))
-	e.endDate, _ = time.Parse(timeFormat,   entry.GetString("end"))
+	e.endDate, _ = time.Parse(timeFormat, entry.GetString("end"))
 
 	e.repeatType = RepeatType(entry.GetInt("repeattype"))
 
@@ -61,78 +61,78 @@ func (e *Event) Parse(entry db.Item) {
 
 func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
 	switch e.repeatType {
-		// If we don't repeat, make see if the original even occurs between the
-		// start and end times. If it does, then send it. Always close the
-		// channel.
-		case NoRepeat:
-			if e.startDate.Before(end) && e.endDate.After(start) {
-				var eventCopy Event = *e
-				eventCopy.StartTime = e.startDate
-				resp <- eventCopy
+	// If we don't repeat, make see if the original even occurs between the
+	// start and end times. If it does, then send it. Always close the
+	// channel.
+	case NoRepeat:
+		if e.startDate.Before(end) && e.endDate.After(start) {
+			var eventCopy Event = *e
+			eventCopy.StartTime = e.startDate
+			resp <- eventCopy
+		}
+
+	// If it repeats every day, find the first time it happens in the range
+	// and iterate through until we hit the end.
+	case DailyRepeat:
+		// Make sure the repeated date range is within the range we're scanning.
+		if start.Before(e.repeatUntil) && end.After(e.startDate) {
+			startDay := e.startDate
+			for startDay.Before(start) {
+				startDay = startDay.AddDate(0, 0, e.repeatFrequency)
+			}
+			for startDay.Before(end) {
+				var eventInstance Event = *e
+				eventInstance.StartTime = startDay
+				resp <- eventInstance
+				startDay = startDay.AddDate(0, 0, e.repeatFrequency)
+			}
+		}
+
+	case WeeklyRepeat:
+		if start.Before(e.repeatUntil) && end.After(e.startDate) {
+			fmt.Println(e)
+			startDate := e.startDate
+			for startDate.Before(start) {
+				startDate = startDate.AddDate(0, 0, e.repeatFrequency*7)
+			}
+			// Made it to the first matching timespan.
+			// Back it up because we went too far.
+			startDate = startDate.AddDate(0, 0, e.repeatFrequency*-7)
+
+			// This is an array of the number of days to add in a cycle
+			// while hunting for hits.
+			skips := makeSkips(e.days)
+			skips[len(skips)-1] += 7 * (e.repeatFrequency - 1)
+			skipsIndex := 0
+
+			for startDate.Before(start) || startDate.Before(e.startDate) {
+				startDate = startDate.AddDate(0, 0, skips[skipsIndex])
+
+				skipsIndex++
+				if skipsIndex == len(skips) {
+					skipsIndex = 0
+				}
 			}
 
-		// If it repeats every day, find the first time it happens in the range
-		// and iterate through until we hit the end.
-		case DailyRepeat:
-			// Make sure the repeated date range is within the range we're scanning.
-			if start.Before(e.repeatUntil) && end.After(e.startDate) {
-				startDay := e.startDate
-				for startDay.Before(start) {
-					startDay = startDay.AddDate(0, 0, e.repeatFrequency)
-				}
-				for startDay.Before(end) {
-					var eventInstance Event = *e
-					eventInstance.StartTime = startDay
-					resp <- eventInstance
-					startDay = startDay.AddDate(0, 0, e.repeatFrequency)
-				}
-			}
+			// Found the first potential match.
 
-		case WeeklyRepeat:
-			if start.Before(e.repeatUntil) && end.After(e.startDate) {
-				fmt.Println(e)
-				startDate := e.startDate
-				for startDate.Before(start) {
-					startDate = startDate.AddDate(0, 0, e.repeatFrequency * 7)
-				}
-				// Made it to the first matching timespan.
-				// Back it up because we went too far.
-				startDate = startDate.AddDate(0, 0, e.repeatFrequency * -7)
+			for startDate.Before(end) && startDate.Before(e.repeatUntil) {
+				// Sending a match.
+				eventInstance := *e
+				eventInstance.StartTime = startDate
 
-				// This is an array of the number of days to add in a cycle
-				// while hunting for hits.
-				skips := makeSkips(e.days)
-				skips[len(skips)-1] += 7 * (e.repeatFrequency-1)
-				skipsIndex := 0
+				resp <- eventInstance
 
-				for startDate.Before(start) || startDate.Before(e.startDate) {
-					startDate = startDate.AddDate(0, 0, skips[skipsIndex])
+				// Adding for the next match.
 
-					skipsIndex++
-					if skipsIndex == len(skips) {
-						skipsIndex = 0
-					}
-				}
+				startDate = startDate.AddDate(0, 0, skips[skipsIndex])
 
-				// Found the first potential match.
-
-				for startDate.Before(end) && startDate.Before(e.repeatUntil) {
-					// Sending a match.
-					eventInstance := *e
-					eventInstance.StartTime = startDate
-
-					resp <- eventInstance
-
-					// Adding for the next match.
-
-					startDate = startDate.AddDate(0, 0, skips[skipsIndex])
-
-					skipsIndex++
-					if skipsIndex == len(skips) {
-						skipsIndex = 0
-					}
+				skipsIndex++
+				if skipsIndex == len(skips) {
+					skipsIndex = 0
 				}
 			}
+		}
 	}
 	close(resp)
 }
@@ -150,7 +150,7 @@ func makeSkips(bits uint8) []int {
 		bits <<= 1
 	}
 	skips[len(skips)-2] += skips[0]
-	skips = skips[1:len(skips)-1]
+	skips = skips[1 : len(skips)-1]
 	fmt.Println(skips)
 	return skips
 }
