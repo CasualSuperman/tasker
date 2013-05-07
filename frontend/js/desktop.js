@@ -326,7 +326,7 @@
 			if (iterDate.getMonth() !== date.getMonth()) {
 				cell.addClass("sideMonth");
 			} else {
-				if (iterDate.valueOf() === XDate.today().valueOf()) { //ui.model.getDate().valueOf()) {
+				if (iterDate.valueOf() === XDate.today().valueOf()) {
 					cell.addClass("today");
 				}
 				if (ui.selectedDate !== null && 
@@ -354,6 +354,10 @@
 					$(".name", eventDiv).text(e.name);
 					$(".time", eventDiv).text(new XDate(e.startTime, true).toString("h(:mm)TT"));
 					cell.append(eventDiv);
+
+					if (new XDate(e.startTime).addMilliseconds(e.duration / 1000000) > XDate.now()) {
+						eventDiv.addClass("future");
+					}
 
 					ui.model.getCalendarColor(e.cid, function(color) {
 						eventDiv.css({"border-color":"#"+color});
