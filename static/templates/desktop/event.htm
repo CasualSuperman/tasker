@@ -107,6 +107,11 @@
 	<h2>Summary:</h2>
 	<span class="typicn summary"></span><span id="summary" class="summary"></span>
 	</div>
+
+	<h2>Calendar:</h2>
+	<select id="calSel" name="calendar"></select>
+
+	<br />
 	<br />
 	<input type="button" value="Save" class="done" />
 </form>
@@ -189,6 +194,18 @@ $("input[name=startTime]").on("changeTime", function() {
 	$("input[name=endTime]").timepicker("option", "minTime", start);
 });
 $("input[name=endTime]").timepicker({"minTime": "12:00am","showDuration": true});
+
+ui.model.getCalendars(function(cals) {
+	$.each(cals, function(i, cal) {
+		var calEntry = $("<option />");
+		calEntry.text(cal.name).data("color", cal.color).attr("value", cal.cid);
+		$("#calSel", formName).append(calEntry);
+	});
+});
+
+$("#calSel", formName).on("change", function() {
+	$(this).css("border-left-color", "#"+$("option:checked", this).data("color"));
+}).trigger("change");
 
 function generateSummary() {
 	var summary = "Every ",

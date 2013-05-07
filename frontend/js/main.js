@@ -25,9 +25,12 @@
 							_this.apiBuffer[i][2](calendars[_this.apiBuffer[i][1]].color);
 							_this.apiBuffer.splice(i, 1);
 							i--;
+						} else if (_this.apiBuffer[i][0] === "calendars") {
+							_this.apiBuffer[i][1](calendars);
+							_this.apiBuffer.splice(i, 1);
+							i--;
 						}
 					}
-
 				});
 			} else {
 				_this.calendars = {};
@@ -73,6 +76,14 @@
 			cb(this.calendars[cid].color);
 		} else {
 			this.apiBuffer.push(["calendarColor", cid, cb]);
+		}
+	};
+
+	Calendar.prototype.getCalendars = function(cb) {
+		if (this.setupDone()) {
+			cb(this.calendars);
+		} else {
+			this.apiBuffer.push(["calendars", cb]);
 		}
 	};
 
