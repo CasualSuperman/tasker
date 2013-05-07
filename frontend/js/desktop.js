@@ -74,11 +74,24 @@
 		var today = XDate.today();
 		var battery = navigator.battery || navigator.webkitBattery || navigator.mozBattery;
 
+		// Expire events that happened before now.
+		var expireOldEvents = function() {
+			displayMonth(_this.container, _this, _this.events);
+			var timeout = 1000 * 10; // 10 seconds
+			if (battery && !battery.charging) {
+				timeout *= 6; // 1 minute
+			}
+
+			// If we're invisible, don't schedule a new event.
+			if (!visibleApi.available || document[visibleApi.state] !== "hidden") {
+				return setTimeout(expireOldEvents, timeout);
+			}
+		};
 
 		var checkForNextDay = function() {
 			if (XDate.today().valueOf() !== today.valueOf()) {
 				today = XDate.today();
-				displayMonth(_this,container, _this, _this.events);
+				displayMonth(_this.container, _this, _this.events);
 			}
 
 			var timeout = 500;
@@ -92,6 +105,7 @@
 			}
 		};
 
+		expireOldEvents();
 		checkForNextDay();
 
 		// If we can check for visibility, then we need to restart the checker when we flip back to the calendar.
@@ -100,6 +114,7 @@
 				if (document[visibleApi.state] !== "hidden") {
 					console.log("Visible again. Catching up.");
 					checkForNextDay();
+					expireOldEvents();
 				}
 			});
 		}
@@ -355,7 +370,9 @@
 					$(".time", eventDiv).text(new XDate(e.startTime, true).toString("h(:mm)TT"));
 					cell.append(eventDiv);
 
-					if (new XDate(e.startTime).addMilliseconds(e.duration / 1000000) > XDate.now()) {
+					var endTime = new XDate(e.startTime, true).setUTCMode(false, true).addMilliseconds(e.duration / 1000000);
+
+					if (endTime.valueOf() > new XDate().valueOf()) {
 						eventDiv.addClass("future");
 					}
 
