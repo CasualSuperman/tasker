@@ -358,9 +358,55 @@
 			if (iterDate.getMonth() !== date.getMonth()) {
 				cell.addClass("sideMonth");
 			} else {
+				// We want the cell to expand when it's too big.
+				cell.mouseenter(function() {
+					var td = $(this);
+					var lastEvent = td.children(".event").last();
+					var targetHeight = lastEvent.css("top").replace("px", "") - 0 + lastEvent.outerHeight();
+					if (targetHeight <= td.outerHeight()) {
+						return;
+					}
+					var startingStyle = {
+						"height": td.height() + "px",
+						"padding-bottom": td.css("padding-bottom")
+					};
+					var offset = td.offset();
+					td.stop().css({
+						"top": offset.top,
+						"left": offset.left,
+						"width": td.width() + "px"
+					}).animate({
+						"height": targetHeight - (td.outerHeight() - td.height()),
+						"padding-bottom": "0.5em"
+					}, function() {
+						$(this).removeClass("expanding");
+					}).addClass("expanded");
+
+					// Only save the current state if we weren't already
+					// collapsing, cause those values will be where we were
+					// mid-collapse.
+					if (!$(this).hasClass("collapsing")) {
+						td.data("startingStyle", startingStyle)
+					}
+				}).mouseleave(function() {
+					var td = $(this);
+					td.addClass("collapsing").stop().animate(td.data("startingStyle"), function() {
+						$(this).removeClass("expanded collapsing")
+							   .css({
+								   "top": "",
+								   "left": "",
+								   "width": "",
+								   "height": "",
+								   "padding-bottom": ""
+						});
+					});
+				});
+
+				// Mark today.
 				if (iterDate.valueOf() === XDate.today().valueOf()) {
 					cell.addClass("today");
 				}
+				// Add the selected indicator.
 				if (ui.selectedDate !== null && 
 					iterDate.valueOf() === ui.selectedDate.valueOf()) {
 					cell.append($("<div class='selectTriangle' />"));
