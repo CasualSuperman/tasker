@@ -77,9 +77,9 @@
 		// Expire events that happened before now.
 		var expireOldEvents = function() {
 			displayMonth(_this.container, _this, _this.events);
-			var timeout = 1000 * 10; // 10 seconds
+			var timeout = 1000 * 30; // 30 seconds
 			if (battery && !battery.charging) {
-				timeout *= 6; // 1 minute
+				timeout *= 6; // 3 minutes
 			}
 
 			// If we're invisible, don't schedule a new event.
