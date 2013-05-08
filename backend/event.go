@@ -150,28 +150,29 @@ func ParseHTTP(req *http.Request) (map[string]interface{}, []string, []string) {
 			errErrors = append(errErrors, "Unrecognized repeat stop.")
 		}
 
-		if e["repeatType"] == MonthlyRepeat {
-			if req.FormValue("repeatByMonth") == "day" {
-				e["fullWeek"] = req.FormValue("fullWeek") == "on"
-
-				// Figure out the bitmask of which days we repeat on.
-				days := req.Form["daysOfWeek"]
-				dayBitMask := 0
-				daySlice := []string{"Su", "M", "Tu", "W", "Th", "F", "Sa"}
-				for _, str := range daySlice {
-					dayBitMask <<= 1
-					for _, matchStr := range days {
-						if str == matchStr {
-							dayBitMask |= 1
-						}
+		if (e["repeatType"] == MonthlyRepeat && req.FormValue("repeatByMonth") == "day") ||
+			e["repeatType"] == WeeklyRepeat {
+			// Figure out the bitmask of which days we repeat on.
+			days := req.Form["daysOfWeek"]
+			dayBitMask := 0
+			daySlice := []string{"Su", "M", "Tu", "W", "Th", "F", "Sa"}
+			for _, str := range daySlice {
+				dayBitMask <<= 1
+				for _, matchStr := range days {
+					if str == matchStr {
+						dayBitMask |= 1
 					}
 				}
-				e["days"] = uint8(dayBitMask)
+			}
+			e["days"] = uint8(dayBitMask)
 
-				if dayBitMask == 0 {
-					errFields = append(errFields, "daysOfWeek")
-					errErrors = append(errErrors, "Please select at least one day of the week.")
-				}
+			if dayBitMask == 0 {
+				errFields = append(errFields, "daysOfWeek")
+				errErrors = append(errErrors, "Please select at least one day of the week.")
+			}
+
+			if e["repeatType"] == MonthlyRepeat {
+				e["fullWeek"] = req.FormValue("fullWeek") == "on"
 
 				// Figure out which week of the month we repeat on.
 				weekInMonthStr := req.FormValue("weekInMonth")
