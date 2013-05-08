@@ -1,8 +1,6 @@
 Any
 ===
-* Add a calendar field to the event creation form.
-
-Mobile
-======
-* Make day names their shortened versions in portrait mode.
-* Find some way to keep events from overflowing their days.
+* Fix activation links to go to the main app and perform an API request.
+* Add event editing.
+* Add calendar filtering.
+* Add calendar editing/creation/deletion.
