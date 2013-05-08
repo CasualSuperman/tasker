@@ -90,11 +90,13 @@ body {
 		}
 
 		.event {
+			background-color: @lightgrey;
 			border-left: 2px solid;
 			color: @foreground;
 			font-size: 0.8em;
 			left: 0;
 			margin: 0 3px;
+			opacity: 0.4;
 			padding: 2px;
 			position: absolute;
 			right: 0;
@@ -104,13 +106,20 @@ body {
 				border-bottom: 1px solid;
 			}
 
-			&.future {
+			&.future, &.active {
 				background-color: @lightgrey;
+				color: @foreground;
+				opacity: 1.0;
 			}
+
+			&.active {
+				color: @accent;
+			}
+
 
 			.name {
 				display: inline-block;
-				max-width: 75%;
+				max-width: 70%;
 				overflow: hidden;
 				text-overflow: ellipsis;
 				white-space: nowrap;
@@ -119,7 +128,7 @@ body {
 			.time {
 				display: inline-block;
 				float: right;
-				min-width: 25%;
+				min-width: 20%;
 				text-align: right;
 			}
 		}

@@ -82,8 +82,14 @@
 				var e = $(div).data("event");
 				var startTime = new XDate(e.startTime, true).setUTCMode(false, true);
 				var endTime = startTime.clone().addMilliseconds(e.duration / 1000000);
-				if (endTime.diffMinutes(now) >= 0) {
+				if (startTime.diffMinutes(now) >= 0) {
 					$(div).removeClass("future");
+
+					// We're now past the starting point. If we're not past the
+					// finishing point, then it's happening right NOW!
+					if (endTime.diffMinutes(now) < 0) {
+						$(div).addClass("active");
+					}
 				}
 			});
 
@@ -362,6 +368,7 @@
 				cell.mouseenter(function() {
 					var td = $(this);
 					var lastEvent = td.children(".event").last();
+					if (lastEvent.length === 0) return;
 					var targetHeight = lastEvent.css("top").replace("px", "") - 0 + lastEvent.outerHeight();
 					if (targetHeight <= td.outerHeight()) {
 						return;
