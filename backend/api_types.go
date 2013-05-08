@@ -84,9 +84,9 @@ func (e *eventsList) Code() int {
 }
 
 type apiFormResponse struct {
-	Success bool `json:"success"`
+	Success   bool     `json:"success"`
 	ErrFields []string `json:"errFields,omitempty"`
-	ErrMsgs []string `json:"errMsgs,omitempty"`
+	ErrMsgs   []string `json:"errMsgs,omitempty"`
 }
 
 func (fr *apiFormResponse) Json() []byte {

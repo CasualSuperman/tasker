@@ -134,7 +134,7 @@ func createEvent(res http.ResponseWriter, req *http.Request, sess db.Database) a
 func checkUserOwnsCalendar(sess db.Database, uid, cal int) bool {
 	calendars := sess.ExistentCollection("Calendars")
 
-	num, err := calendars.Count(db.Cond{"cid":cal}, db.Cond{"owner":uid})
+	num, err := calendars.Count(db.Cond{"cid": cal}, db.Cond{"owner": uid})
 	if err != nil {
 		fmt.Println(err)
 		return false
@@ -143,7 +143,7 @@ func checkUserOwnsCalendar(sess db.Database, uid, cal int) bool {
 	}
 
 	sharedCalendars := sess.ExistentCollection("CalendarShares")
-	num, err = sharedCalendars.Count(db.Cond{"cid":cal}, db.Cond{"uid":uid})
+	num, err = sharedCalendars.Count(db.Cond{"cid": cal}, db.Cond{"uid": uid})
 	if err != nil {
 		fmt.Println(err)
 		return false
