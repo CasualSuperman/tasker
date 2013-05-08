@@ -68,6 +68,9 @@
 			if (data.err === undefined) {
 				_this.events = data.events;
 				displayMonth(_this.container, _this, data.events);
+
+				expireOldEvents();
+				checkForNextDay();
 			}
 		});
 
@@ -78,10 +81,12 @@
 		var expireOldEvents = function() {
 			var now = new XDate();
 
-			$(".event.future", _this.container).each(function(i, div) {
+			$(".event.future, .event.active", _this.container).each(function(i, div) {
 				var e = $(div).data("event");
 				var startTime = new XDate(e.startTime, true).setUTCMode(false, true);
 				var endTime = startTime.clone().addMilliseconds(e.duration / 1000000);
+
+				// If the event has already started
 				if (startTime.diffMinutes(now) >= 0) {
 					$(div).removeClass("future");
 
@@ -89,6 +94,9 @@
 					// finishing point, then it's happening right NOW!
 					if (endTime.diffMinutes(now) < 0) {
 						$(div).addClass("active");
+					} else {
+						// Otherwise, the event is complete.
+						$(div).removeClass("active");
 					}
 				}
 			});
@@ -128,9 +136,6 @@
 			}
 		};
 
-		expireOldEvents();
-		checkForNextDay();
-
 		// If we can check for visibility, then we need to restart the checker when we flip back to the calendar.
 		if (visibleApi.available) {
 			document.addEventListener(visibleApi.visibilityChange, function() {
@@ -141,6 +146,9 @@
 				}
 			});
 		}
+
+		checkForNextDay();
+		expireOldEvents();
 	}
 
 	var fadeDuration = 300, // 300ms
