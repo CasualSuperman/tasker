@@ -174,6 +174,7 @@
 					if (resp.success) {
 						$(_this.overlay).fadeOut(_this.clearOverlay);
 						$(_this.controls).addClass("loggedIn");
+						_this.updateDisplay();
 					} else {
 						$("input[type=password]", _this.overlay).val("");
 						$(".err", _this.overlay).text(resp.err);
@@ -260,6 +261,7 @@
 							if (doLogout) {
 								model.logout(function() {
 									$(root).removeClass("loggedIn");
+									ui.updateDisplay();
 								});
 							}
 						});
