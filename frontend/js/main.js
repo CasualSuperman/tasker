@@ -96,9 +96,10 @@
 	};
 
 	Calendar.prototype.getEventsForMonth = function(month, cb) {
-		var baseDate = month.setDate(1);
-		var startDate = baseDate.toString("yyyy-MM-dd");
-		var endDate = baseDate.addMonths(1).toString("yyyy-MM-dd");
+		var baseDate = new XDate(month).setDate(1);
+		var startDate = baseDate.clone().addDays(-baseDate.getDay()).toString("yyyy-MM-dd");
+		var endDate = baseDate.clone().addMonths(1);
+		endDate = endDate.addDays((6-endDate.getDay())%6).toString("yyyy-MM-dd");
 
 		this.apiServer.eventsInDateRange(startDate, endDate, cb);
 	};

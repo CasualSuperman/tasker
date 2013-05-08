@@ -373,94 +373,93 @@
 
 			if (iterDate.getMonth() !== date.getMonth()) {
 				cell.addClass("sideMonth");
-			} else {
-				// We want the cell to expand when it's too big.
-				cell.mouseenter(function() {
-					var td = $(this);
-					var lastEvent = td.children(".event").last();
-					if (lastEvent.length === 0) return;
-					var targetHeight = lastEvent.css("top").replace("px", "") - 0 + lastEvent.outerHeight();
-					if (targetHeight <= td.outerHeight()) {
-						return;
-					}
-					var startingStyle = {
-						"height": td.height() + "px",
-						"padding-bottom": td.css("padding-bottom")
-					};
-					var offset = td.offset();
-					td.stop().css({
-						"top": offset.top,
-						"left": offset.left,
-						"width": td.width() + "px"
-					}).animate({
-						"height": targetHeight - (td.outerHeight() - td.height()),
-						"padding-bottom": "0.5em"
-					}, function() {
-						$(this).removeClass("expanding");
-					}).addClass("expanded");
-
-					// Only save the current state if we weren't already
-					// collapsing, cause those values will be where we were
-					// mid-collapse.
-					if (!$(this).hasClass("collapsing")) {
-						td.data("startingStyle", startingStyle)
-					}
-				}).mouseleave(function() {
-					var td = $(this);
-					td.addClass("collapsing").stop().animate(td.data("startingStyle"), function() {
-						$(this).removeClass("expanded collapsing")
-							   .css({
-								   "top": "",
-								   "left": "",
-								   "width": "",
-								   "height": "",
-								   "padding-bottom": ""
-						});
-					});
-				});
-
-				// Mark today.
-				if (iterDate.valueOf() === XDate.today().valueOf()) {
-					cell.addClass("today");
-				}
-				// Add the selected indicator.
-				if (ui.selectedDate !== null && 
-					iterDate.valueOf() === ui.selectedDate.valueOf()) {
-					cell.append($("<div class='selectTriangle' />"));
-				}
-				var eventsOnDay = [];
-				$.each(events, function(ignored, e) {
-					var happensOn = new XDate(e.startTime);
-					if (happensOn.clone().clearTime().valueOf() === iterDate.valueOf()) {
-						eventsOnDay.push(e);
-					}
-				});
-
-				eventsOnDay.sort(function(a, b) {
-					return new XDate(b.startTime).diffMinutes(new XDate(a.startTime));
-				});
-
-				$.each(eventsOnDay, function(i, e) {
-					var eventDiv = $("<div class='event'><span class='name' /><span class='time' /></div>");
-					var duration = Math.round(e.duration / 1000 / 1000 / 1000 / 60); // Convert to Minutes
-					eventDiv.addClass(duration + "min")
-							.css({"top": (2.5*(i+1)) + "em"})
-							.data("event", e);
-					$(".name", eventDiv).text(e.name);
-					$(".time", eventDiv).text(new XDate(e.startTime, true).toString("h(:mm)TT"));
-					cell.append(eventDiv);
-
-					var endTime = new XDate(e.startTime, true).setUTCMode(false, true).addMilliseconds(e.duration / 1000000);
-
-					if (endTime.valueOf() > new XDate().valueOf()) {
-						eventDiv.addClass("future");
-					}
-
-					ui.model.getCalendarColor(e.cid, function(color) {
-						eventDiv.css({"border-color":"#"+color});
-					});
-				});
 			}
+			// We want the cell to expand when it's too big.
+			cell.mouseenter(function() {
+				var td = $(this);
+				var lastEvent = td.children(".event").last();
+				if (lastEvent.length === 0) return;
+				var targetHeight = lastEvent.css("top").replace("px", "") - 0 + lastEvent.outerHeight();
+				if (targetHeight <= td.outerHeight()) {
+					return;
+				}
+				var startingStyle = {
+					"height": td.height() + "px",
+					"padding-bottom": td.css("padding-bottom")
+				};
+				var offset = td.offset();
+				td.stop().css({
+					"top": offset.top,
+					"left": offset.left,
+					"width": td.width() + "px"
+				}).animate({
+					"height": targetHeight - (td.outerHeight() - td.height()),
+					"padding-bottom": "0.5em"
+				}, function() {
+					$(this).removeClass("expanding");
+				}).addClass("expanded");
+
+				// Only save the current state if we weren't already
+				// collapsing, cause those values will be where we were
+				// mid-collapse.
+				if (!$(this).hasClass("collapsing")) {
+					td.data("startingStyle", startingStyle)
+				}
+			}).mouseleave(function() {
+				var td = $(this);
+				td.addClass("collapsing").stop().animate(td.data("startingStyle"), function() {
+					$(this).removeClass("expanded collapsing")
+						   .css({
+							   "top": "",
+							   "left": "",
+							   "width": "",
+							   "height": "",
+							   "padding-bottom": ""
+					});
+				});
+			});
+
+			// Mark today.
+			if (iterDate.valueOf() === XDate.today().valueOf()) {
+				cell.addClass("today");
+			}
+			// Add the selected indicator.
+			if (ui.selectedDate !== null && 
+				iterDate.valueOf() === ui.selectedDate.valueOf()) {
+				cell.append($("<div class='selectTriangle' />"));
+			}
+			var eventsOnDay = [];
+			$.each(events, function(ignored, e) {
+				var happensOn = new XDate(e.startTime);
+				if (happensOn.clone().clearTime().valueOf() === iterDate.valueOf()) {
+					eventsOnDay.push(e);
+				}
+			});
+
+			eventsOnDay.sort(function(a, b) {
+				return new XDate(b.startTime).diffMinutes(new XDate(a.startTime));
+			});
+
+			$.each(eventsOnDay, function(i, e) {
+				var eventDiv = $("<div class='event'><span class='name' /><span class='time' /></div>");
+				var duration = Math.round(e.duration / 1000 / 1000 / 1000 / 60); // Convert to Minutes
+				eventDiv.addClass(duration + "min")
+						.css({"top": (2.5*(i+1)) + "em"})
+						.data("event", e);
+				$(".name", eventDiv).text(e.name);
+				$(".time", eventDiv).text(new XDate(e.startTime, true).toString("h(:mm)TT"));
+				cell.append(eventDiv);
+
+				var endTime = new XDate(e.startTime, true).setUTCMode(false, true).addMilliseconds(e.duration / 1000000);
+
+				if (endTime.valueOf() > new XDate().valueOf()) {
+					eventDiv.addClass("future");
+				}
+
+				ui.model.getCalendarColor(e.cid, function(color) {
+					eventDiv.css({"border-color":"#"+color});
+				});
+			});
 
 			iterDate.addDays(1);
 		}
