@@ -103,6 +103,10 @@
 		this.apiServer.eventsInDateRange(startDate, endDate, cb);
 	};
 
+	Calendar.prototype.createEvent = function(formData, cb) {
+		this.apiServer.createEvent(formData, cb);
+	}
+
 	Calendar.prototype.getDate = function() {
 		return this.today.clone();
 	};

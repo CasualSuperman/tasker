@@ -137,6 +137,17 @@ $(formName).delegate("[name=repeatByMonth]", "change", function(e) {
 $(formName).change(generateSummary);
 $("select[name=frequency]", formName).change();
 
+$("input.done", formName).click(function() {
+	ui.model.createEvent($(formName).serialize(), function(data) {
+		if (data.success) {
+			$("#panelClose").click();
+			ui.updateDisplay();
+		} else {
+			// Loop through all the errors and display all the errors.
+		}
+	});
+});
+
 var fillValue = function() {};
 // Preload the selected date to the form.
 var selectedDates = $(".selectTriangle").parent();
@@ -184,6 +195,11 @@ $("input[name=endDate]", formName).pickadate({
 	}
 });
 fillValue();
+$("input[name=afterDate]", formName).pickadate({
+	format: "mmmm d, yyyy",
+	formatSubmit: "yyyy-mm-d"
+});
+
 
 $("input[name=startTime]").timepicker();
 $("input[name=startTime]").on("changeTime", function() {

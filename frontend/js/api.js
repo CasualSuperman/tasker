@@ -51,5 +51,12 @@
 		});
 	};
 
+	API.prototype.createEvent = function(formData, cb) {
+		$.ajax({
+			url: this.server + "events/create?" + formData,
+			dataType: "json"
+		}).done(cb);
+	};
+
 	global.API = API;
 })(window);
