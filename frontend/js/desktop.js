@@ -81,7 +81,7 @@
 		var expireOldEvents = function() {
 			var now = new XDate();
 
-			$(".event.future, .event.active", _this.container).each(function(i, div) {
+			$("td:not(.sideMonth) .event.future, td:not(.sideMonth) .event.active", _this.container).each(function(i, div) {
 				var e = $(div).data("event");
 				var startTime = new XDate(e.startTime, true).setUTCMode(false, true);
 				var endTime = startTime.clone().addMilliseconds(e.duration / 1000000);
