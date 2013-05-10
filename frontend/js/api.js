@@ -2,7 +2,7 @@
 	"use strict";
 	function API(server) {
 		this.server = server;
-	};
+	}
 	API.prototype.getBool = function(path, cb) {
 		$.ajax({
 			url: this.server + path,

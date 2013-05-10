@@ -320,9 +320,6 @@
 		ui.updateDisplay();
 	}
 
-	function displayControls(cal, root) {
-	}
-
 	function displayMonth(root, ui, events) {
 		var fragment = document.createDocumentFragment(),
 			calendar = $("<table />", {'id':'month'}),
@@ -378,7 +375,9 @@
 			cell.mouseenter(function() {
 				var td = $(this);
 				var lastEvent = td.children(".event").last();
-				if (lastEvent.length === 0) return;
+				if (lastEvent.length === 0) {
+					return;
+				}
 				var targetHeight = lastEvent.css("top").replace("px", "") - 0 + lastEvent.outerHeight();
 				if (targetHeight <= td.outerHeight()) {
 					return;
@@ -403,7 +402,7 @@
 				// collapsing, cause those values will be where we were
 				// mid-collapse.
 				if (!$(this).hasClass("collapsing")) {
-					td.data("startingStyle", startingStyle)
+					td.data("startingStyle", startingStyle);
 				}
 			}).mouseleave(function() {
 				var td = $(this);
@@ -465,7 +464,7 @@
 		}
 
 		// Move the selected indicator around when people click on dates.
-		$(calendar).delegate("td:not(.sideMonth)", "click", function(e) {
+		$(calendar).delegate("td:not(.sideMonth)", "click", function() {
 			var _this = this;
 			var triangle = $(".selectTriangle", calendar);
 			if (triangle.length === 0) {
