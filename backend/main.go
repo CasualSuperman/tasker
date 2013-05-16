@@ -1,9 +1,8 @@
 package main
 
 import (
-	"database/sql"
 	"github.com/gosexy/db"
-	_ "github.com/gosexy/db/mysql"
+	_ "github.com/gosexy/db/sqlite"
 	"net/http"
 	"runtime"
 )
@@ -12,18 +11,10 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// This connects to a local mysql server.
-	sess, err := db.Open("mysql", dbSettings)
+	sess, err := db.Open("sqlite", dbSettings)
 
 	if err != nil {
 		// If it didn't work, quit and tell us about it.
-		panic(err)
-	}
-
-	// Make sure we actually connected my executing a command.
-	drv := sess.Driver().(*sql.DB)
-	_, err = drv.Exec("SHOW TABLES;")
-
-	if err != nil {
 		panic(err)
 	}
 
