@@ -61,7 +61,7 @@
 		initContainer(this, this.container);
 		initOverlay(this, this.overlay);
 
-		displayControls(calendar, this.controls);
+		//displayControls(calendar, this.controls);
 
 		this.events = [];
 		calendar.getEventsForMonth(this.currentDate.clone(), function(data) {
@@ -76,6 +76,9 @@
 
 		var today = XDate.today();
 		var battery = navigator.battery || navigator.webkitBattery || navigator.mozBattery;
+
+		var eventsTimeout = null;
+		var midnightTimeout = null;
 
 		// Expire events that happened before now.
 		var expireOldEvents = function() {
@@ -108,7 +111,9 @@
 
 			// If we're invisible, don't schedule a new event.
 			if (!visibleApi.available || document[visibleApi.state] !== "hidden") {
-				return setTimeout(expireOldEvents, timeout);
+				eventsTimeout = setTimeout(expireOldEvents, timeout);
+			} else {
+				eventsTimeout = null;
 			}
 		};
 
@@ -132,17 +137,22 @@
 
 			// If we're invisible, don't schedule a new event.
 			if (!visibleApi.available || document[visibleApi.state] !== "hidden") {
-				return setTimeout(checkForNextDay, timeout);
+				midnightTimeout = setTimeout(checkForNextDay, timeout);
+			} else {
+				midnightTimeout = null;
 			}
 		};
 
 		// If we can check for visibility, then we need to restart the checker when we flip back to the calendar.
 		if (visibleApi.available) {
 			document.addEventListener(visibleApi.visibilityChange, function() {
-				if (document[visibleApi.state] !== "hidden") {
+				if (document[visibleApi.state] === "visible") {
 					console.log("Visible again. Catching up.");
 					checkForNextDay();
 					expireOldEvents();
+				} else if (document[visibleApi.state] === "hidden") {
+					clearTimeout(eventsTimeout);
+					clearTimeout(midnightTimeout);
 				}
 			});
 		}
