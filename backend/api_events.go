@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gosexy/db"
 	"net/http"
 	"time"
@@ -40,12 +39,10 @@ func eventsInRange(res http.ResponseWriter, req *http.Request, sess db.Database)
 	session, _ := store.Get(req, "calendar")
 	startDate, err := time.Parse(dateFormat, req.FormValue("start"))
 	if err != nil {
-		fmt.Println(startDate, err)
 		return apiUserResponse{false, "Unable to parse start date.", http.StatusOK}
 	}
 	endDate, err := time.Parse(dateFormat, req.FormValue("end"))
 	if err != nil {
-		fmt.Println(endDate, err)
 		return apiUserResponse{false, "Unable to parse end date.", http.StatusOK}
 	}
 
@@ -79,7 +76,6 @@ func eventsInRange(res http.ResponseWriter, req *http.Request, sess db.Database)
 				if ok {
 					eventsInRange = append(eventsInRange, e)
 				}
-				fmt.Println(e)
 			}
 		}
 	}
@@ -106,8 +102,6 @@ func createEvent(res http.ResponseWriter, req *http.Request, sess db.Database) a
 	event, errFields, errMsgs := ParseHTTP(req)
 	event["creator"] = uid
 
-	fmt.Println(event)
-
 	if len(errFields) > 0 {
 		return &apiFormResponse{false, errFields, errMsgs}
 	} else {
@@ -115,7 +109,6 @@ func createEvent(res http.ResponseWriter, req *http.Request, sess db.Database) a
 			eventTable := sess.ExistentCollection("Events")
 			_, err := eventTable.Append(event)
 			if err != nil {
-				fmt.Println(err)
 				return &apiFormResponse{false, nil, nil}
 			}
 			return &apiFormResponse{true, nil, nil}
@@ -136,7 +129,6 @@ func checkUserOwnsCalendar(sess db.Database, uid, cal int) bool {
 
 	num, err := calendars.Count(db.Cond{"cid": cal}, db.Cond{"owner": uid})
 	if err != nil {
-		fmt.Println(err)
 		return false
 	} else if num > 0 {
 		return true
@@ -145,7 +137,6 @@ func checkUserOwnsCalendar(sess db.Database, uid, cal int) bool {
 	sharedCalendars := sess.ExistentCollection("CalendarShares")
 	num, err = sharedCalendars.Count(db.Cond{"cid": cal}, db.Cond{"uid": uid})
 	if err != nil {
-		fmt.Println(err)
 		return false
 	} else if num > 0 {
 		return true
