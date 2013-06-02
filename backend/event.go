@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gosexy/db"
 	"net/http"
 	"strconv"
@@ -86,7 +85,6 @@ func ParseHTTP(req *http.Request) (map[string]interface{}, []string, []string) {
 	startTime, err := time.Parse(formFormat, startStr)
 	e["start"] = startTime.Format(timeFormat)
 	if err != nil {
-		fmt.Println(err)
 		errFields = append(errFields, "startTime")
 		errErrors = append(errErrors, "Start date format incorrect.")
 	}
@@ -189,6 +187,7 @@ func ParseHTTP(req *http.Request) (map[string]interface{}, []string, []string) {
 	return e, errFields, errErrors
 }
 
+// TODO: Implement MonthlyRepeat and YearlyRepeat
 func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
 	switch e.repeatType {
 	// If we don't repeat, make see if the original even occurs between the
@@ -220,7 +219,6 @@ func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
 
 	case WeeklyRepeat:
 		if start.Before(e.repeatUntil) && end.After(e.start) {
-			fmt.Println(e)
 			startDate := e.start
 			for startDate.Before(start) {
 				startDate = startDate.AddDate(0, 0, e.repeatFrequency*7)
@@ -281,7 +279,6 @@ func makeSkips(bits uint8) []int {
 	}
 	skips[len(skips)-2] += skips[0]
 	skips = skips[1 : len(skips)-1]
-	fmt.Println(skips)
 	return skips
 }
 
