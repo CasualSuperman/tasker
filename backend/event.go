@@ -33,7 +33,7 @@ type Event struct {
 	repeatType      RepeatType
 	repeatFrequency int
 
-	repeatUntil time.Time
+	repeatUntil *time.Time
 	days        uint8
 	fullWeek    bool
 	weekOfMonth int
@@ -47,10 +47,14 @@ func (e *Event) ParseDB(entry db.Item) {
 
 	if e.repeatType != NoRepeat {
 		e.repeatFrequency = int(entry.GetInt("repeatfrequency"))
-		e.repeatUntil, _ = time.Parse(dateFormat, entry.GetString("repeatuntil"))
+		repeatUntil, err := time.Parse(dateFormat, entry.GetString("repeatuntil"))
+		println(entry.GetString("repeatuntil"))
+		if err == nil {
+			repeatUntil = repeatUntil.AddDate(0, 0, 1) // The day after the last day we can be on.
+			e.repeatUntil = &repeatUntil
+		}
 		e.days = uint8(entry.GetInt("days"))
 		e.fullWeek = entry.GetBool("fullweek")
-		e.repeatUntil = e.repeatUntil.AddDate(0, 0, 1) // The day after the last day we can be on.
 	}
 
 	e.Duration = time.Since(e.start) - time.Since(e.end)
@@ -187,82 +191,115 @@ func ParseHTTP(req *http.Request) (map[string]interface{}, []string, []string) {
 	return e, errFields, errErrors
 }
 
-// TODO: Implement MonthlyRepeat and YearlyRepeat
+// TODO: Implement MonthlyRepeat
+// TODO: Implement Repeat Counts instead of dates or forevers
 func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
+	defer close(resp)
+
+	if e.repeatType != NoRepeat {
+		if e.start.After(end) {
+			return
+		}
+		if e.repeatUntil != nil && e.repeatUntil.Before(start) {
+			return
+		}
+	}
+
+	// If the event can't happen in the range, we can just quit here.
 	switch e.repeatType {
+
+	case NoRepeat:
 	// If we don't repeat, make see if the original even occurs between the
 	// start and end times. If it does, then send it. Always close the
 	// channel.
-	case NoRepeat:
-		if e.start.Before(end) && e.end.After(start) {
-			var eventCopy Event = *e
-			eventCopy.StartTime = e.start
-			resp <- eventCopy
-		}
+		var eventCopy Event = *e
+		eventCopy.StartTime = e.start
+		resp <- eventCopy
 
+	case DailyRepeat:
 	// If it repeats every day, find the first time it happens in the range
 	// and iterate through until we hit the end.
-	case DailyRepeat:
-		// Make sure the repeated date range is within the range we're scanning.
-		if start.Before(e.repeatUntil) && end.After(e.start) {
-			startDay := e.start
-			for startDay.Before(start) {
-				startDay = startDay.AddDate(0, 0, e.repeatFrequency)
-			}
-			for startDay.Before(end) {
-				var eventInstance Event = *e
-				eventInstance.StartTime = startDay
-				resp <- eventInstance
-				startDay = startDay.AddDate(0, 0, e.repeatFrequency)
-			}
+		startDay := e.start
+		for startDay.Before(start) {
+			startDay = startDay.AddDate(0, 0, e.repeatFrequency)
+		}
+		for startDay.Before(end) {
+			var eventInstance Event = *e
+			eventInstance.StartTime = startDay
+			resp <- eventInstance
+			startDay = startDay.AddDate(0, 0, e.repeatFrequency)
 		}
 
 	case WeeklyRepeat:
-		if start.Before(e.repeatUntil) && end.After(e.start) {
-			startDate := e.start
-			for startDate.Before(start) {
-				startDate = startDate.AddDate(0, 0, e.repeatFrequency*7)
-			}
-			// Made it to the first matching timespan.
-			// Back it up because we went too far.
-			startDate = startDate.AddDate(0, 0, e.repeatFrequency*-7)
+		// Find the first week that the event happens in within our range.
+		startDate := e.start
+		for startDate.Before(start) {
+			startDate = startDate.AddDate(0, 0, e.repeatFrequency*7)
+		}
+		// Made it to the first matching timespan.
+		// Back it up because we went too far.
+		startDate = startDate.AddDate(0, 0, e.repeatFrequency*-7)
 
-			// This is an array of the number of days to add in a cycle
-			// while hunting for hits.
-			skips := makeSkips(e.days)
-			skips[len(skips)-1] += 7 * (e.repeatFrequency - 1)
-			skipsIndex := 0
+		// This is an array of the number of days to add in a cycle
+		// while hunting for hits.
+		skips := makeSkips(e.days)
+		skips[len(skips)-1] += 7 * (e.repeatFrequency - 1)
+		skipsIndex := 0
 
-			for startDate.Before(start) || startDate.Before(e.start) {
-				startDate = startDate.AddDate(0, 0, skips[skipsIndex])
+		// While the event is before when the event starts, or when the range
+		// starts, go to the next one.
+		for startDate.Before(start) || startDate.Before(e.start) {
+			startDate = startDate.AddDate(0, 0, skips[skipsIndex])
 
-				skipsIndex++
-				if skipsIndex == len(skips) {
-					skipsIndex = 0
-				}
-			}
-
-			// Found the first potential match.
-
-			for startDate.Before(end) && startDate.Before(e.repeatUntil) {
-				// Sending a match.
-				eventInstance := *e
-				eventInstance.StartTime = startDate
-
-				resp <- eventInstance
-
-				// Adding for the next match.
-
-				startDate = startDate.AddDate(0, 0, skips[skipsIndex])
-
-				skipsIndex++
-				if skipsIndex == len(skips) {
-					skipsIndex = 0
-				}
+			skipsIndex++
+			if skipsIndex == len(skips) {
+				skipsIndex = 0
 			}
 		}
+
+		// Found the first potential match.
+
+		// Now find all the matches and send them down the channel.
+		for startDate.Before(end) && (e.repeatUntil == nil || startDate.Before(*e.repeatUntil)) {
+			// Sending a match.
+			eventInstance := *e
+			eventInstance.StartTime = startDate
+
+			resp <- eventInstance
+
+			// Adding for the next match.
+
+			startDate = startDate.AddDate(0, 0, skips[skipsIndex])
+
+			skipsIndex++
+			if skipsIndex == len(skips) {
+				skipsIndex = 0
+			}
+		}
+	case YearlyRepeat:
+		dateThisYear := e.start
+		years := start.Year() - dateThisYear.Year()
+
+		// If the starting point of the event is before the year the span
+		// contains.
+		for years < 0 {
+			years += e.repeatFrequency
+		}
+
+		// Move the event to this year or after it
+		dateThisYear = dateThisYear.AddDate(years, 0, 0)
+
+		// We're now after start, make sure we're before end.
+		for dateThisYear.Before(end) {
+			// Sending a match
+			eventThisYear := *e;
+			eventThisYear.StartTime = dateThisYear
+
+			resp <- eventThisYear
+
+			dateThisYear = dateThisYear.AddDate(e.repeatFrequency, 0, 0)
+		}
 	}
-	close(resp)
 }
 
 func makeSkips(bits uint8) []int {
