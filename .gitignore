@@ -1,3 +1,6 @@
 tasker
 backend/api_keys.go
 backend/db.go
+static/desktop.js
+static/main.js
+static/main.css
