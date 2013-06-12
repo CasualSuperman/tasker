@@ -252,8 +252,35 @@
 		adjustWidth(this, 300);
 	};
 
+	var formToDbField = {
+		"eid": "eid",
+		"name": "name",
+		"allDay": "allday",
+		"skip": "repeatfrequency"
+	};
+
 	DesktopUI.prototype.populateEventDetails = function(eid) {
-		console.log("Need to get event details for event with id", eid);
+		var _this = this;
+		this.model.apiServer.getEvent(eid, function(data) {
+			$("#eventForm", _this.controls).find("input").each(function(i, elem) {
+				var $elem = $(elem);
+				switch ($elem.attr("name")) {
+				default: return;
+
+				case "eid":
+					$elem.val(data["eid"]);
+					break;
+
+				case "name":
+					$elem.val(data["name"]);
+					break;
+
+				case "startDate":
+					$elem.data("picker").set("select", data[""]);
+				}
+			});
+			console.log(data);
+		});
 	};
 
 	function adjustWidth(ui, width) {
@@ -278,9 +305,11 @@
 
 		$(root).load("templates/desktop/controls.htm", function() {
 			$("#navigation .typcn-chevron-left", this).click(function() {
+				$("#panelClose").trigger("click");
 				prevMonth(ui);
 			});
 			$("#navigation .typcn-chevron-right", this).click(function() {
+				$("#panelClose").trigger("click");
 				nextMonth(ui);
 			});
 			$("#loginIndicator", this).click(function() {
@@ -304,6 +333,7 @@
 
 	function initContainer(ui, root) {
 		var changeMonth = function(e) {
+			$(editButton).detach();
 			e = e.originalEvent;
 			if (e.wheelDelta > 0) {
 				prevMonth(ui);
@@ -315,24 +345,24 @@
 		var editButton = document.createElement("span");
 		editButton.id = "edit-event";
 		$(editButton).addClass("typcn typcn-edit")
-		             .css({"float": "right", "padding": "0 0.3em"})
-		             .on("click", function(e) {
-		             	e.stopPropagation();
-		             	ui.showPanel("update/event.htm", function() {
-		             		ui.populateEventDetails($(".event.selected").data("event").eid);
-		             	});
+		             .css({"float": "right", "padding": "0 0.3em"});
+		$(root).on("click", "#edit-event", function(e) {
+			e.stopPropagation();
+			ui.showPanel("update/event.htm", function() {
+				ui.populateEventDetails($(".event.selected").data("event").eid);
+			});
 
-		                var closePanel = function() {
-		             		$("#panelClose").off("click.editEvent").trigger("click");
-							$(root).off("click.editEvent");
-						}
+			var closePanel = function() {
+				$("#panelClose").off("click.editEvent").trigger("click");
+				$(root).off("click.editEvent");
+			}
 
-						$(root).on("click.editEvent", closePanel);
+			$(root).on("click.editEvent", closePanel);
 
-						$("#panelClose").on("click.editEvent", function() {
-							$(root).off("click.editEvent");
-						});
-		             });
+			$("#panelClose").on("click.editEvent", function() {
+				$(root).off("click.editEvent");
+			});
+		});
 
 		$(root).bind("mousewheel", function(e) {
 			if (!ui.transitioning) {

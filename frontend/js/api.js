@@ -58,5 +58,26 @@
 		}).done(cb);
 	};
 
+	API.prototype.getEvent = function(eid, cb) {
+		$.ajax({
+			url: this.server + "events/dump?eid=" + eid,
+			dataType: "json"
+		}).done(function(data) {
+			var days = parseInt(data["days"]);
+			var dayArr = [];
+			var i = 6;
+			while (days > 0) {
+				var thisDay = days & 1;
+				if (thisDay === 1) {
+					dayArr.push(i);
+				}
+				i--;
+				days = days >> 1;
+			}
+			data["days"] = dayArr;
+			cb(data);
+		});
+	};
+
 	global.API = API;
 })(window);
