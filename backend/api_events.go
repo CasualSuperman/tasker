@@ -9,7 +9,7 @@ import (
 
 const dateFormat = "2006-01-02"
 const timeFormat = "2006-01-02 15:04"
-const formFormat = "2006-01-02 3:04pm"
+const formFormat = "2006-01-02 3:04 PM"
 
 var defaultLocation = time.UTC
 
@@ -162,6 +162,46 @@ func createEvent(res http.ResponseWriter, req *http.Request, sess db.Database) a
 	return apiUserResponse{}
 }
 
+func updateEvent(res http.ResponseWriter, req *http.Request, sess db.Database) apiResponse {
+	session, _ := store.Get(req, "calendar")
+
+	if val, ok := session.Values["logged-in"]; !ok || !val.(bool) {
+		return apiUserResponse{
+			false,
+			"Please register to create an event.",
+			http.StatusOK,
+		}
+	}
+
+	uid := int(session.Values["uid"].(int64))
+	event, errFields, errMsgs := ParseHTTP(req)
+	event["creator"] = uid
+	eid, err := strconv.Atoi(req.FormValue("eid"))
+	event["eid"] = eid
+
+	if len(errFields) > 0 || err != nil {
+		return &apiFormResponse{false, errFields, errMsgs}
+	} else {
+		if checkUserOwnsCalendar(sess, uid, event["calendar"].(int)) &&
+		   checkUserOwnsEvent(sess, uid, event["eid"].(int)) {
+			eventTable := sess.ExistentCollection("Events")
+			err := eventTable.Update(db.Cond{"eid": eid}, db.Set(event))
+			if err != nil {
+				return &apiFormResponse{false, nil, nil}
+			}
+			return &apiFormResponse{true, nil, nil}
+		} else {
+			return &apiFormResponse{
+				false,
+				[]string{"calendar"},
+				[]string{"You don't have permission to use that calendar."},
+			}
+		}
+	}
+
+	return apiUserResponse{}
+}
+
 func checkUserOwnsCalendar(sess db.Database, uid, cal int) bool {
 	calendars := sess.ExistentCollection("Calendars")
 
@@ -174,6 +214,27 @@ func checkUserOwnsCalendar(sess db.Database, uid, cal int) bool {
 
 	sharedCalendars := sess.ExistentCollection("CalendarShares")
 	num, err = sharedCalendars.Count(db.Cond{"cid": cal}, db.Cond{"uid": uid})
+	if err != nil {
+		return false
+	} else if num > 0 {
+		return true
+	}
+
+	return false
+}
+
+func checkUserOwnsEvent(sess db.Database, uid, eid int) bool {
+	events := sess.ExistentCollection("Events")
+
+	num, err := events.Count(db.Cond{"eid": eid}, db.Cond{"creator": uid})
+	if err != nil {
+		return false
+	} else if num > 0 {
+		return true
+	}
+
+	sharedEvents := sess.ExistentCollection("EventShares")
+	num, err = sharedEvents.Count(db.Cond{"eid": eid}, db.Cond{"uid": uid})
 	if err != nil {
 		return false
 	} else if num > 0 {
