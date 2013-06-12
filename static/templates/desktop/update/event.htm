@@ -1,0 +1,451 @@
+<form id="eventForm">
+	<input type="hidden" name="eid" />
+
+	<h2>Event name:</h2>
+	<input name="name" placeholder="Untitled Event"></input>
+
+	<h2>Starts on:</h2>
+	<input name="startDate" type="date"></input>
+	<input name="startTime" class="time" value="9:00am"></input>
+
+	<h2>Ends on:</h2>
+	<input name="endDate" type="date"></input>
+	<input name="endTime" class="time" value="10:00am"></input>
+
+	<h2>All day:</h2>
+	<input type="checkbox" name="allDay" /> This event lasts all day.
+
+	<h2>Repeats:</h2>
+	<select name="frequency">
+		<option value="none">None</option>
+		<option value="daily">Daily</option>
+		<option value="weekly">Weekly</option>
+		<option value="monthly">Monthly</option>
+		<option value="yearly">Yearly</option>
+	</select>
+
+	<div class="daily weekly monthly yearly">
+	<h2>Repeat every:</h2>
+	<select name="skip">
+		<option value="1"> 1</option>
+		<option value="2"> 2</option>
+		<option value="3"> 3</option>
+		<option value="4"> 4</option>
+		<option value="5"> 5</option>
+		<option value="6"> 6</option>
+		<option value="7"> 7</option>
+		<option value="8"> 8</option>
+		<option value="9"> 9</option>
+		<option value="10">10</option>
+		<option value="11">11</option>
+		<option value="12">12</option>
+		<option value="13">13</option>
+		<option value="14">14</option>
+		<option value="15">15</option>
+		<option value="16">16</option>
+		<option value="17">17</option>
+		<option value="18">18</option>
+		<option value="19">19</option>
+		<option value="20">20</option>
+		<option value="21">21</option>
+		<option value="22">22</option>
+		<option value="23">23</option>
+		<option value="24">24</option>
+		<option value="25">25</option>
+		<option value="26">26</option>
+		<option value="27">27</option>
+		<option value="28">28</option>
+		<option value="29">29</option>
+		<option value="30">30</option>
+	</select>
+	<span class="daily">days</span>
+	<span class="weekly">weeks</span>
+	<span class="monthly">months</span>
+	<span class="yearly">years</span>
+
+	<div class="monthly">
+		<h2>Repeat by:</h2>
+		<input type="radio" name="repeatByMonth" id="repeatByMonthDate" value="date" checked />
+		<label for="repeatByMonthDate">Day of the month</label>
+		<br />
+		<input type="radio" name="repeatByMonth" id="repeatByMonthDay" value="day" />
+		<label for="repeatByMonthDay">Day of the week</label>
+	</div>
+
+	<div class="weekly monthly day">
+		<h2>Repeat on:</h2>
+		<input type="checkbox" name="daysOfWeek" value="Su" />S
+		<input type="checkbox" name="daysOfWeek" value="M" />M
+		<input type="checkbox" name="daysOfWeek" value="Tu" />T
+		<input type="checkbox" name="daysOfWeek" value="W" />W
+		<input type="checkbox" name="daysOfWeek" value="Th" />T
+		<input type="checkbox" name="daysOfWeek" value="F" />F
+		<input type="checkbox" name="daysOfWeek" value="Sa" />S
+	</div>
+
+	<div class="monthly day">
+		<h2>When in month:</h2>
+		<select name="weekInMonth">
+			<option value="1">First week</option>
+			<option value="-1">Last week</option>
+			<option value="2">2nd week</option>
+			<option value="3">3rd week</option>
+			<option value="4">4th week</option>
+			<option value="-2">Next to last week</option>
+		</select>
+		<br />
+		<input type="checkbox" name="fullWeek" /> Full weeks only
+	</div>
+
+	<h2>Ends:</h2>
+	<input name="ends" type="radio" value="never" checked /> Never
+	<br />
+	<input name="ends" type="radio" value="afterN" />
+		After <input type="number" name="afterN" min="1" /> occurrences
+	<br />
+	<input name="ends" type="radio" value="afterDate" />
+		On <input type="date" name="afterDate" />
+
+	<h2>Summary:</h2>
+	<span class="typcn typcn-summary"></span><span id="summary" class="summary"></span>
+	</div>
+
+	<h2>Calendar:</h2>
+	<select id="calSel" name="calendar"></select>
+
+	<br />
+	<br />
+	<input type="button" value="Save" class="done" />
+</form>
+
+<script>
+var formName = "#eventForm";
+$(formName).delegate("select[name=frequency]", "change", function(e) {
+	var selected = $(this).val();
+	$(formName).removeClass("daily weekly monthly yearly").addClass(selected);
+	$(formName).find(".daily, .weekly, .monthly, .yearly")
+					.hide();
+	$(formName).find("." + selected)
+					.show();
+	if (selected === "monthly") {
+		$("[name=repeatByMonth]", formName).change();
+	}
+});
+$(formName).delegate("[name=repeatByMonth]", "change", function(e) {
+	var selected = $("input[name=repeatByMonth]:checked", formName).val();
+	$(".monthly", formName).filter(".day, .date").hide();
+	$(".monthly", formName).filter("." + selected).show();
+});
+$(formName).change(generateSummary);
+$("select[name=frequency]", formName).change();
+
+$("input.done", formName).click(function() {
+	ui.model.createEvent($(formName).serialize(), function(data) {
+		if (data.success) {
+			$("#panelClose").click();
+			ui.updateDisplay();
+		} else {
+			// Loop through all the errors and display all the errors.
+		}
+	});
+});
+
+//================================= Create the Date pickers. =================================//
+var startPicker = $("input[name=startDate]", formName).pickadate({
+	format: "mmmm d, yyyy",
+	formatSubmit: "yyyy-mm-d",
+	onSet: function() {
+		var currEndDate = new XDate(endPicker.get());
+		var currStartDate = new XDate(this.get());
+		var currRepeatDate = new XDate(repeatPicker.get());
+
+		var targetDate = currStartDate.toDate();
+
+		// Make sure the end date is after the start date.
+		endPicker.set("min", targetDate);
+		if (currEndDate < currStartDate || endPicker.get() === "") {
+			endPicker.set("select", targetDate);
+		}
+
+		// Make sure the repeater has to stop repeating after the first event.
+		repeatPicker.set("min", targetDate);
+		if (currRepeatDate < currStartDate || repeatPicker.get() === "") {
+			repeatPicker.set("select", targetDate);
+		}
+	}
+}).pickadate("picker");
+
+var endPicker = $("input[name=endDate]", formName).pickadate({
+	format: "mmmm d, yyyy",
+	formatSubmit: "yyyy-mm-d",
+}).pickadate("picker");
+
+var repeatPicker = $("input[name=afterDate]", formName).pickadate({
+	format: "mmmm d, yyyy",
+	formatSubmit: "yyyy-mm-d"
+}).pickadate("picker");
+
+//================================= Create the Time pickers. =================================//
+var pullApartTime = function(str) {
+		var am = str.indexOf("AM") !== -1;
+		var hours = parseInt(str.split(':')[0], 10);
+		var minutes = parseInt(str.split(':')[1], 10);
+		if (am && hours === 12) {
+			hours = 0;
+		} else if (!am && hours > 12) {
+			hours += 12;
+		}
+
+		return [hours, minutes];
+};
+var startTime = $("input[name=startTime]").pickatime({
+	onSet: function() {
+		var startingTime = pullApartTime(this.get());
+		var endingTime = pullApartTime(endTime.get());
+
+		endTime.set("min", startingTime);
+
+		if (endingTime[0] < startingTime[0] || (endingTime[0] === startingTime[0] && endingTime[1] < startingTime[1])) {
+			var newTime = startingTime.slice();
+			newTime[0] += 1;
+			endTime.set("select", newTime);
+		}
+	}
+}).pickatime("picker");
+
+var endTime = $("input[name=endTime]").pickatime({
+	max: [24, 0],
+	formatLabel: function(time) {
+		var startingTime = pullApartTime(startTime.get());
+		var hours = (time.pick - (startingTime[0] * 60 + startingTime[1])) / 60;
+		return "h:i a <sm!all>" + hours + (hours === 1 ? " !hour" : " !hours") + " long</sm!all>";
+	}
+}).pickatime("picker");
+
+
+//======================== Disable the time input if it lasts all day. =======================//
+$("input[name=allDay]").on("change", function(e) {
+	console.log("Changed!");
+	var checked = $(this).is(":checked");
+	if (checked) {
+		$("input[name=startTime]").fadeOut();
+		$("input[name=endTime]").fadeOut();
+	} else {
+		$("input[name=startTime]").fadeIn();
+		$("input[name=endTime]").fadeIn();
+	}
+});
+
+//========================= Load a list of calendars to choose from. =========================//
+ui.model.getCalendars(function(cals) {
+	$.each(cals, function(i, cal) {
+		var calEntry = $("<option />");
+		calEntry.text(cal.name).data("color", cal.color).attr("value", cal.cid);
+		$("#calSel", formName).append(calEntry);
+	});
+});
+
+$("#calSel", formName).on("change", function() {
+	$(this).css("border-left-color", "#"+$("option:checked", this).data("color"));
+}).trigger("change");
+
+
+//===================================== Helper functions. ====================================//
+function generateSummary() {
+	var summary = "Every ",
+		nth = parseInt($("select[name=skip]").val()),
+		freq = $("select[name=frequency]").val();
+
+	if (freq === "daily") {
+		if (nth === 1) {
+			summary += "day.";
+		} else if (nth === 2) {
+			summary += "other day.";
+		} else {
+			summary += cardinal(nth) + " days.";
+		}
+		return insertSummary(summary);
+	}
+
+	switch (nth) {
+	case 1:
+		break;
+	case 2:
+		summary += "other ";
+		break;
+	default:
+		summary += cardinal(nth) + " ";
+		break;
+	}
+
+	if (freq === "weekly") {
+		if (nth === 1 || nth === 2) {
+			summary += "week on ";
+		} else {
+			summary += "weeks on ";
+		}
+		var days = $("input[name=daysOfWeek]:checked", formName).map(function() {
+			return this.value;
+		}).get();
+
+		if (days.length === 0) {
+			return insertWarnSummary("Please select a day of the week.");
+		}
+
+		summary += dayList(days) + "."
+
+		return insertSummary(summary);
+	} else if (freq === "monthly") {
+		var dateOrDay = $("input[name=repeatByMonth]:checked", formName).val();
+		var n = new XDate($("input[name=startDate]", formName).val()).getDate();
+
+		if (dateOrDay === "date") {
+			summary = "On the " + ordinal(n);
+			if (nth === 1) {
+				summary += " of every month.";
+			} else if(nth === 2) {
+				summary += " of every other month.";
+			} else {
+				summary += ", every " + cardinal(nth) + " months.";
+			}
+		} else {
+			if (nth === 1 || nth === 2) {
+				summary += "month on the ";
+			} else {
+				summary += "months on the ";
+			}
+
+			var days = $("input[name=daysOfWeek]:checked", formName).map(function() {
+				return this.value;
+			}).get();
+
+			if (days.length === 0) {
+				return insertWarnSummary("Please select a day of the week.");
+			}
+
+			var week = $("select[name=weekInMonth] option:checked", formName).text().toLowerCase();
+			if ($("input[name=fullWeek]").prop("checked")) {
+				week = week.replace(" week", " full week");
+			}
+			if (week === "first week") {
+				summary += " first " + dayList(days) + " of the month.";
+			} else if (week === "last week") {
+				summary += " last " + dayList(days) + " of the month.";
+			} else {
+				summary += dayList(days) + " of the ";
+				summary += week + ".";
+			}
+
+			return insertSummary(summary);
+		}
+
+
+	} else if (freq === "yearly") {
+		if (nth === 1 || nth === 2) {
+			summary += "year on ";
+		} else {
+			summary += "years on ";
+		}
+		var start = new XDate($("input[name=startDate]", formName).val());
+
+		console.log("Starting point for split.", start);
+		summary += mToMonth(start.getMonth() + 1);
+		summary += " " + ordinal(start.getDate()) + ".";
+	}
+
+
+	return insertSummary(summary);
+}
+
+function mToMonth(m) {
+	var monthNames = ["January","February","March","April","May","June",
+			"July","August","September","October","November","December"];
+	return monthNames[m-1];
+}
+function dayList(days) {
+	if (days.length === 1) {
+		return dToDay(days[0]);
+	} else if (days.length === 2) {
+		return dToDay(days[0]) + " and " + dayList(days.slice(1));
+	} else if (days.length === 3) {
+		return dToDay(days[0]) + ", " + dToDay(days[1]) + ", and " + dayList([days[2]]);
+	} else {
+		return dToDay(days[0]) + ", " + dayList(days.slice(1));
+	}
+}
+
+function insertSummary(summary) {
+	$(".summary", formName).removeClass("warning").filter("#summary").text(summary);
+}
+
+function insertWarnSummary(summary) {
+	$(".summary", formName).addClass("warning").filter("#summary").text(summary);
+}
+
+function dToDay(d) {
+	return {
+		"Su": "Sunday",
+		'M' : "Monday",
+		"Tu" : "Tuesday",
+		'W' : "Wednesday",
+		"Th" : "Thursday",
+		'F' : "Friday",
+		"Sa": "Saturday"
+	}[d];
+}
+
+function ordinal(nth) {
+	switch (nth) {
+	case 1: return "1st";
+	case 2: return "2nd";
+	case 3: return "3rd";
+	default:
+		var overTen = Math.floor(nth / 10);
+		if (nth > 20) {
+			return overTen + ordinal(nth % 10);
+		} else {
+			return nth + "th";
+		}
+	}
+}
+
+// Only support up to 99
+function cardinal(n) {
+	switch (n) {
+	case 1: return "one";
+	case 2: return "two";
+	case 3: return "three";
+	case 4: return "four";
+	case 5: return "five";
+	case 6: return "six";
+	case 7: return "seven";
+	case 8: return "eight";
+	case 9: return "nine";
+	case 10: return "ten";
+	case 11: return "eleven";
+	case 12: return "twelve";
+	case 13: return "thirteen";
+	case 15: return "fifteen";
+	case 18: return "eighteen";
+	case 19: return "ninteen";
+	default:
+		if (n < 20) {
+			return cardinal(n % 10) + "teen";
+		}
+		var suffix = "";
+		if ((n % 10) !== 0) {
+			suffix = "-" + cardinal(n % 10);
+		}
+		switch (Math.floor(n / 10)) {
+		case 2: return "twenty" + suffix;
+		case 3: return "thirty" + suffix;
+		case 4: return "fourty" + suffix;
+		case 5: return "fifty" + suffix;
+		case 6: return "sixty" + suffix;
+		case 7: return "seventy" + suffix;
+		case 8: return "eighty" + suffix;
+		case 9: return "ninety" + suffix;
+		}
+	}
+}
+</script>

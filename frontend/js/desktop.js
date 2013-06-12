@@ -261,24 +261,66 @@
 
 	DesktopUI.prototype.populateEventDetails = function(eid) {
 		var _this = this;
+		var root = _this.controls;
+		function getInputByName(name) {
+			return $("input[name=" + name + "]", root);
+		}
+
+		function xDateToTime(date) {
+			return [date.getHours(), date.getMinutes()];
+		}
+
 		this.model.apiServer.getEvent(eid, function(data) {
-			$("#eventForm", _this.controls).find("input").each(function(i, elem) {
-				var $elem = $(elem);
-				switch ($elem.attr("name")) {
-				default: return;
+			getInputByName("eid").val(data["eid"]).trigger("change");
+			getInputByName("name").val(data["name"]).trigger("change");
 
-				case "eid":
-					$elem.val(data["eid"]);
-					break;
+			var start = new XDate(data["start"]);
+			var end = new XDate(data["end"]);
 
-				case "name":
-					$elem.val(data["name"]);
-					break;
+			getInputByName("startDate").pickadate("picker").set("select", start.toDate());
+			getInputByName("endDate").pickadate("picker").set("select", end.toDate());
 
-				case "startDate":
-					$elem.data("picker").set("select", data[""]);
-				}
+			// TODO: Find a way to get these to stop snapping to the interval.
+			getInputByName("startTime").pickatime("picker").set("select", xDateToTime(start));
+			getInputByName("endTime").pickatime("picker").set("select", xDateToTime(end));
+
+			getInputByName("allDay").prop("checked", data["allday"] === "1").trigger("change");
+
+			$("select[name=frequency] option:eq(" + data["repeattype"] + ")").prop("selected", true);
+			$("select[name=frequency]").trigger("change");
+
+			$("select[name=skip]").val(data["repeatfrequency"]).trigger("change");
+
+			var weekOfMonth = data["weekofmonth"];
+			if (weekOfMonth === "") {
+				$("#repeatByMonthDate", root).prop("checked", true).trigger("change");
+			} else {
+				$("#repeatByMonthDay", root).prop("checked", true).trigger("change");
+				$("select[name=weekInMonth]").val(weekOfMonth).trigger("change");
+			}
+
+			$.each(data["days"], function(i, index) {
+				$("input[name=daysOfWeek]:eq(" + index + ")").prop("checked", true).trigger("change");
 			});
+
+			if (data["fullweek"] !== "") {
+				getInputByName("fullWeek").prop("checked", true).trigger("change");
+			}
+
+			var repeatUntil = data["repeatuntil"];
+			var repeatCount = data["repeatcount"];
+
+			if (!repeatUntil && !repeatCount) {
+				$("input[name=ends][value=never]").prop("checked", true).trigger("change");
+			} else if (repeatUntil) {
+				$("input[name=ends][value=afterDate]").prop("checked", true).trigger("change");
+				var stopDate = new XDate(repeatUntil);
+				getInputByName("afterDate").pickadate("picker").set("select", stopDate.toDate());
+			} else {
+				$("input[name=ends][value=afterN]").prop("checked", true).trigger("change");
+				getInputByName("afterN").val(repeatCount).trigger("change");
+			}
+
 			console.log(data);
 		});
 	};
