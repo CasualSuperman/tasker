@@ -1,17 +1,17 @@
-<div id="loginIndicator" class="typicn user"></div>
-<div id="panelClose" class="typicn left"></div>
+<div id="loginIndicator" class="typcn typcn-user"></div>
+<div id="panelClose" class="typcn typcn-delete-outline"></div>
 <div id="addControls"></div>
 <div id="navigation">
-	<div id="add" class="typicn plus"></div>
-	<span class="typicn previous"></span>
-	<span class="typicn next"></span>
+	<div id="add" class="typcn typcn-plus"></div>
+	<span class="typcn typcn-chevron-left"></span>
+	<span class="typcn typcn-chevron-right"></span>
 </div>
 
 <script>
 $("#add").click(function() {
 	$(this).fadeOut();
 	ui.slideOutControls();
-	$("#addControls").show().load("templates/desktop/event.htm");
+	$("#addControls").show().load("templates/desktop/create/event.htm");
 	$("#panelClose").fadeIn();
 });
 
