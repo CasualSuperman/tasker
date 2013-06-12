@@ -225,7 +225,6 @@ var endTime = $("input[name=endTime]").pickatime({
 
 //======================== Disable the time input if it lasts all day. =======================//
 $("input[name=allDay]").on("change", function(e) {
-	console.log("Changed!");
 	var checked = $(this).is(":checked");
 	if (checked) {
 		$("input[name=startTime]").fadeOut();
@@ -348,7 +347,6 @@ function generateSummary() {
 		}
 		var start = new XDate($("input[name=startDate]", formName).val());
 
-		console.log("Starting point for split.", start);
 		summary += mToMonth(start.getMonth() + 1);
 		summary += " " + ordinal(start.getDate()) + ".";
 	}
