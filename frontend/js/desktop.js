@@ -307,13 +307,10 @@
 			}
 		});
 
-		$(root).on("click", ".event", function(e) {
-			console.log(e);
-			return false;
-		});
-
 		$(root).on("click", "#month td:not(.sideMonth)", function(e) {
 			var _this = this;
+			$(".event.selected", root).removeClass("selected");
+			$(".event.justSelected", root).toggleClass("selected justSelected");
 			var triangle = $(".selectTriangle", root);
 			if (triangle.length === 0) {
 				triangle = $("<div class='selectTriangle' />");
@@ -327,6 +324,11 @@
 					ui.selectedDate = $(_this).data("date");
 				});
 			}
+		});
+
+		$(root).on("click", ".event", function(e) {
+			$(".event.selected", root).removeClass("selected");
+			$(this).addClass("selected justSelected");
 		});
 	}
 
