@@ -162,8 +162,9 @@
 	}
 
 	var fadeDuration = 300, // 300ms
-		pauseDuration = fadeDuration / 2; // Make the UI pause for half that
+		pauseDuration = fadeDuration / 2, // Make the UI pause for half that
 										  //when waiting for anims to complete.
+		panelUrlBase = "templates/desktop/";
 
 	DesktopUI.prototype.updateDisplay = function() {
 		var _this = this;
@@ -182,6 +183,12 @@
 				}
 			});
 		});
+	};
+
+	DesktopUI.prototype.showPanel = function(url, cb) {
+		this.slideOutControls();
+		$("#addControls", this.controls).show().load(panelUrlBase + url, cb);
+		$("#panelClose", this.controls).fadeIn();
 	};
 
 	DesktopUI.prototype.displayLoginForm = function() {

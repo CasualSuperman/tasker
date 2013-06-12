@@ -10,9 +10,7 @@
 <script>
 $("#add").click(function() {
 	$(this).fadeOut();
-	ui.slideOutControls();
-	$("#addControls").show().load("templates/desktop/create/event.htm");
-	$("#panelClose").fadeIn();
+	ui.showPanel("create/event.htm");
 });
 
 $("#panelClose").click(function() {
