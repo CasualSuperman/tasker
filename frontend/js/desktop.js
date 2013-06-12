@@ -266,10 +266,10 @@
 		});
 
 		$(root).load("templates/desktop/controls.htm", function() {
-			$("#navigation .previous", this).click(function() {
+			$("#navigation .typcn-chevron-left", this).click(function() {
 				prevMonth(ui);
 			});
-			$("#navigation .next", this).click(function() {
+			$("#navigation .typcn-chevron-right", this).click(function() {
 				nextMonth(ui);
 			});
 			$("#loginIndicator", this).click(function() {
@@ -304,6 +304,28 @@
 		$(root).bind("mousewheel", function(e) {
 			if (!ui.transitioning) {
 				changeMonth(e);
+			}
+		});
+
+		$(root).on("click", ".event", function(e) {
+			console.log(e);
+			return false;
+		});
+
+		$(root).on("click", "#month td:not(.sideMonth)", function(e) {
+			var _this = this;
+			var triangle = $(".selectTriangle", root);
+			if (triangle.length === 0) {
+				triangle = $("<div class='selectTriangle' />");
+				$(this).append(triangle);
+				triangle.fadeIn(250);
+				ui.selectedDate = $(_this).data("date");
+			} else {
+				triangle.fadeOut(100, function() {
+					$(_this).append(this);
+					$(this).fadeIn(250);
+					ui.selectedDate = $(_this).data("date");
+				});
 			}
 		});
 	}
@@ -472,24 +494,6 @@
 
 			iterDate.addDays(1);
 		}
-
-		// Move the selected indicator around when people click on dates.
-		$(calendar).delegate("td:not(.sideMonth)", "click", function() {
-			var _this = this;
-			var triangle = $(".selectTriangle", calendar);
-			if (triangle.length === 0) {
-				triangle = $("<div class='selectTriangle' />");
-				$(this).append(triangle);
-				triangle.fadeIn(250);
-				ui.selectedDate = $(_this).data("date");
-			} else {
-				triangle.fadeOut(100, function() {
-					$(_this).append(this);
-					$(this).fadeIn(250);
-					ui.selectedDate = $(_this).data("date");
-				});
-			}
-		});
 
 		// Remove the event handler when we're gone for efficiency.
 		$(window).off("resize.month");
