@@ -317,23 +317,27 @@
 		$(editButton).addClass("typcn typcn-edit")
 		             .css({"float": "right", "padding": "0 0.3em"})
 		             .on("click", function(e) {
-		             	console.log("button clicked.");
 		             	e.stopPropagation();
 		             	ui.showPanel("update/event.htm", function() {
 		             		ui.populateEventDetails($(".event.selected").data("event").eid);
 		             	});
 
 		                var closePanel = function() {
-		             		$("#panelClose").trigger("click");
-							$(root).off("click", closePanel);
+		             		$("#panelClose").off("click.editEvent").trigger("click");
+							$(root).off("click.editEvent");
 						}
 
-						$(root).on("click", closePanel);
+						$(root).on("click.editEvent", closePanel);
+
+						$("#panelClose").on("click.editEvent", function() {
+							$(root).off("click.editEvent");
+						});
 		             });
 
 		$(root).bind("mousewheel", function(e) {
 			if (!ui.transitioning) {
 				changeMonth(e);
+				$("#panelClose").trigger("click");
 			}
 		});
 
@@ -341,7 +345,7 @@
 			var _this = this;
 			if (e.target === this) {
 				$(".event.selected").removeClass("selected");
-				$(editButton).remove();
+				$(editButton).detach();
 			}
 			if (! $(this).hasClass("selected")) {
 				$("td.selected", root).removeClass("selected");
