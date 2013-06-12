@@ -99,3 +99,18 @@ func (fr *apiFormResponse) Type() string {
 func (fr *apiFormResponse) Code() int {
 	return http.StatusOK
 }
+
+type apiRawResponse struct {
+	Success bool `json:"success"`
+	Data interface{} `json:"data"`
+}
+func (ar apiRawResponse) Json() []byte {
+	data, _ := json.Marshal(ar.Data)
+	return data
+}
+func (ar apiRawResponse) Code() int {
+	return http.StatusOK
+}
+func (ar apiRawResponse) Type() string {
+	return "text/plain"
+}

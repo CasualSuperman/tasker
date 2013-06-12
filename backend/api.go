@@ -29,6 +29,7 @@ var handlers = map[string]handlerFunc{
 	"user/info":     userInfo,
 	"events/range":  eventsInRange,
 	"events/create": createEvent,
+	"events/dump":   dumpEvent,
 	"calendars":     calendars,
 }
 

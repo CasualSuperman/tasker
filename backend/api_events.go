@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gosexy/db"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -84,6 +85,43 @@ func eventsInRange(res http.ResponseWriter, req *http.Request, sess db.Database)
 		eventsInRange,
 		startDate,
 		endDate,
+	}
+}
+
+func dumpEvent(res http.ResponseWriter, req *http.Request, sess db.Database) apiResponse {
+	session, _ := store.Get(req, "calendar")
+
+	if val, ok := session.Values["logged-in"]; !ok || !val.(bool) {
+		return apiUserResponse{
+			false,
+			"Please login to get event info.",
+			http.StatusOK,
+		}
+	}
+
+	uid := int(session.Values["uid"].(int64))
+	eid, err := strconv.Atoi(req.FormValue("eid"))
+	if err != nil {
+		return apiUserResponse{
+			false,
+			"Unable to parse event id.",
+			http.StatusOK,
+		}
+	}
+
+	events := sess.ExistentCollection("Events")
+	event, err := events.Find(db.Cond{"eid": eid}, db.Cond{"creator": uid})
+
+	if err == nil {
+		return apiRawResponse{
+			true,
+			event,
+		}
+	}
+	return apiUserResponse{
+		true,
+		"This event doesn't exist or you don't have permission to edit it.",
+		http.StatusOK,
 	}
 }
 
