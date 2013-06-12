@@ -211,6 +211,18 @@ $("input[name=startTime]").on("changeTime", function() {
 });
 $("input[name=endTime]").timepicker({"minTime": "12:00am","showDuration": true});
 
+$("input[name=allDay]").on("change", function(e) {
+	console.log("Changed!");
+	var checked = $(this).is(":checked");
+	if (checked) {
+		$("input[name=startTime]").fadeOut();
+		$("input[name=endTime]").fadeOut();
+	} else {
+		$("input[name=startTime]").fadeIn();
+		$("input[name=endTime]").fadeIn();
+	}
+});
+
 ui.model.getCalendars(function(cals) {
 	$.each(cals, function(i, cal) {
 		var calEntry = $("<option />");
