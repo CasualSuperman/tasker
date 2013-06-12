@@ -58,6 +58,13 @@
 		}).done(cb);
 	};
 
+	API.prototype.updateEvent = function(formData, cb) {
+		$.ajax({
+			url: this.server + "events/update?" + formData,
+			dataType: "json"
+		}).done(cb);
+	};
+
 	API.prototype.getEvent = function(eid, cb) {
 		$.ajax({
 			url: this.server + "events/dump?eid=" + eid,
