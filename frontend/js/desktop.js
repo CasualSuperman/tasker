@@ -321,6 +321,8 @@
 				getInputByName("afterN").val(repeatCount).trigger("change");
 			}
 
+			$("select[name=calendar]").val(data["calendar"]).trigger("change");
+
 			console.log(data);
 		});
 	};

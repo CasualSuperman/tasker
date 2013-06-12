@@ -140,7 +140,7 @@ $(formName).change(generateSummary);
 $("select[name=frequency]", formName).change();
 
 $("input.done", formName).click(function() {
-	ui.model.createEvent($(formName).serialize(), function(data) {
+	ui.model.apiServer.updateEvent($(formName).serialize(), function(data) {
 		if (data.success) {
 			$("#panelClose").click();
 			ui.updateDisplay();
