@@ -48,7 +48,6 @@ func (e *Event) ParseDB(entry db.Item) {
 	if e.repeatType != NoRepeat {
 		e.repeatFrequency = int(entry.GetInt("repeatfrequency"))
 		repeatUntil, err := time.Parse(dateFormat, entry.GetString("repeatuntil"))
-		println(entry.GetString("repeatuntil"))
 		if err == nil {
 			repeatUntil = repeatUntil.AddDate(0, 0, 1) // The day after the last day we can be on.
 			e.repeatUntil = &repeatUntil
