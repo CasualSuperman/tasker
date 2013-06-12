@@ -149,6 +149,7 @@ $("input.done", formName).click(function() {
 });
 
 var fillValue = function() {};
+
 // Preload the selected date to the form.
 var selectedDates = $(".selectTriangle").parent();
 var d;
@@ -172,45 +173,83 @@ if (d !== undefined) {
 	dates.attr("data-value", today);
 }
 
-$("input[name=startDate]", formName).pickadate({
+
+//================================= Create the Date pickers. =================================//
+var startPicker = $("input[name=startDate]", formName).pickadate({
 	format: "mmmm d, yyyy",
 	formatSubmit: "yyyy-mm-d",
-	onSelect: function() {
-		var cal = $("input[name=endDate]").data("pickadate");
-		var currEndDate = new XDate(cal.getDate());
-		var currStartDate = new XDate(this.getDate());
+	onSet: function() {
+		var currEndDate = new XDate(endPicker.get());
+		var currStartDate = new XDate(this.get());
+		var currRepeatDate = new XDate(repeatPicker.get());
 
-		var targetDate = currStartDate.toString("yyyy-MM-dd").split("-").map(function(v){return +v});
-		cal.setDateLimit(targetDate);
-		if (currEndDate < currStartDate || cal.getDate() === "") {
-			cal.setDate.apply(cal, targetDate);
+		var targetDate = currStartDate.toDate();
+
+		// Make sure the end date is after the start date.
+		endPicker.set("min", targetDate);
+		if (currEndDate < currStartDate || endPicker.get() === "") {
+			endPicker.set("select", targetDate);
+		}
+
+		// Make sure the repeater has to stop repeating after the first event.
+		repeatPicker.set("min", targetDate);
+		if (currRepeatDate < currStartDate || repeatPicker.get() === "") {
+			repeatPicker.set("select", targetDate);
 		}
 	}
-});
-$("input[name=endDate]", formName).pickadate({
+}).pickadate("picker");
+
+var endPicker = $("input[name=endDate]", formName).pickadate({
 	format: "mmmm d, yyyy",
 	formatSubmit: "yyyy-mm-d",
-	onSelect: function() {
-		var cal = $("input[name=startDate]").data("pickadate");
-	}
-});
+}).pickadate("picker");
+
 fillValue();
-$("input[name=afterDate]", formName).pickadate({
+
+var repeatPicker = $("input[name=afterDate]", formName).pickadate({
 	format: "mmmm d, yyyy",
 	formatSubmit: "yyyy-mm-d"
-});
+}).pickadate("picker");
+
+//================================= Create the Time pickers. =================================//
+var pullApartTime = function(str) {
+		var am = str.indexOf("AM") !== -1;
+		var hours = parseInt(str.split(':')[0], 10);
+		var minutes = parseInt(str.split(':')[1], 10);
+		if (am && hours === 12) {
+			hours = 0;
+		} else if (!am && hours > 12) {
+			hours += 12;
+		}
+
+		return [hours, minutes];
+};
+var startTime = $("input[name=startTime]").pickatime({
+	onSet: function() {
+		var startingTime = pullApartTime(this.get());
+		var endingTime = pullApartTime(endTime.get());
+
+		endTime.set("min", startingTime);
+
+		if (endingTime[0] < startingTime[0] || (endingTime[0] === startingTime[0] && endingTime[1] < startingTime[1])) {
+			var newTime = startingTime.slice();
+			newTime[0] += 1;
+			endTime.set("select", newTime);
+		}
+	}
+}).pickatime("picker");
+
+var endTime = $("input[name=endTime]").pickatime({
+	max: [24, 0],
+	formatLabel: function(time) {
+		var startingTime = pullApartTime(startTime.get());
+		var hours = (time.pick - (startingTime[0] * 60 + startingTime[1])) / 60;
+		return "h:i a <sm!all>" + hours + (hours === 1 ? " !hour" : " !hours") + " long</sm!all>";
+	}
+}).pickatime("picker");
 
 
-$("input[name=startTime]").timepicker();
-$("input[name=startTime]").on("changeTime", function() {
-	var start = $(this).val();
-	$("input[name=endTime]").timepicker("option", "minTime", start);
-}).on("change", function() {
-	var start = $(this).val();
-	$("input[name=endTime]").timepicker("option", "minTime", start);
-});
-$("input[name=endTime]").timepicker({"minTime": "12:00am","showDuration": true});
-
+//======================== Disable the time input if it lasts all day. =======================//
 $("input[name=allDay]").on("change", function(e) {
 	console.log("Changed!");
 	var checked = $(this).is(":checked");
@@ -223,6 +262,7 @@ $("input[name=allDay]").on("change", function(e) {
 	}
 });
 
+//========================= Load a list of calendars to choose from. =========================//
 ui.model.getCalendars(function(cals) {
 	$.each(cals, function(i, cal) {
 		var calEntry = $("<option />");
@@ -235,6 +275,8 @@ $("#calSel", formName).on("change", function() {
 	$(this).css("border-left-color", "#"+$("option:checked", this).data("color"));
 }).trigger("change");
 
+
+//===================================== Helper functions. ====================================//
 function generateSummary() {
 	var summary = "Every ",
 		nth = parseInt($("select[name=skip]").val()),
