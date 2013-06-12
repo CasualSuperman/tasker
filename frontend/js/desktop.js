@@ -252,6 +252,10 @@
 		adjustWidth(this, 300);
 	};
 
+	DesktopUI.prototype.populateEventDetails = function(eid) {
+		console.log("Need to get event details for event with id", eid);
+	};
+
 	function adjustWidth(ui, width) {
 		$("#month", ui.container).animate({"padding-right": width+"px"});
 		$("#name", ui.container).animate({"margin-right": width+"px"});
@@ -308,6 +312,25 @@
 			}
 		};
 
+		var editButton = document.createElement("span");
+		editButton.id = "edit-event";
+		$(editButton).addClass("typcn typcn-edit")
+		             .css({"float": "right", "padding": "0 0.3em"})
+		             .on("click", function(e) {
+		             	console.log("button clicked.");
+		             	e.stopPropagation();
+		             	ui.showPanel("update/event.htm", function() {
+		             		ui.populateEventDetails($(".event.selected").data("event").eid);
+		             	});
+
+		                var closePanel = function() {
+		             		$("#panelClose").trigger("click");
+							$(root).off("click", closePanel);
+						}
+
+						$(root).on("click", closePanel);
+		             });
+
 		$(root).bind("mousewheel", function(e) {
 			if (!ui.transitioning) {
 				changeMonth(e);
@@ -316,26 +339,38 @@
 
 		$(root).on("click", "#month td:not(.sideMonth)", function(e) {
 			var _this = this;
-			$(".event.selected", root).removeClass("selected");
-			$(".event.justSelected", root).toggleClass("selected justSelected");
-			var triangle = $(".selectTriangle", root);
-			if (triangle.length === 0) {
-				triangle = $("<div class='selectTriangle' />");
-				$(this).append(triangle);
-				triangle.fadeIn(250);
-				ui.selectedDate = $(_this).data("date");
-			} else {
-				triangle.fadeOut(100, function() {
-					$(_this).append(this);
-					$(this).fadeIn(250);
+			if (e.target === this) {
+				$(".event.selected").removeClass("selected");
+				$(editButton).remove();
+			}
+			if (! $(this).hasClass("selected")) {
+				$("td.selected", root).removeClass("selected");
+				var triangle = $(".selectTriangle", root);
+				if (triangle.length === 0) {
+					triangle = $("<div class='selectTriangle' />");
+					$(this).append(triangle);
+					triangle.fadeIn(250);
 					ui.selectedDate = $(_this).data("date");
-				});
+				} else {
+					triangle.fadeOut(100, function() {
+						$(_this).append(this);
+						$(this).fadeIn(250);
+						ui.selectedDate = $(_this).data("date");
+					});
+				}
+				$(this).addClass("selected");
 			}
 		});
 
 		$(root).on("click", ".event", function(e) {
-			$(".event.selected", root).removeClass("selected");
-			$(this).addClass("selected justSelected");
+			if (! $(this).hasClass("selected")) {
+				$(".event.selected", root).removeClass("selected");
+				$(this).addClass("selected")
+				$(editButton).fadeOut('fast', function() {
+					$(e.target).prepend(editButton);
+					$(editButton).fadeIn();
+				});
+			}
 		});
 	}
 
@@ -467,6 +502,7 @@
 			if (ui.selectedDate !== null && 
 				iterDate.valueOf() === ui.selectedDate.valueOf()) {
 				cell.append($("<div class='selectTriangle' />"));
+				cell.addClass("selected");
 			}
 			var eventsOnDay = [];
 			$.each(events, function(ignored, e) {
