@@ -1,122 +1,86 @@
-CREATE TABLE IF NOT EXISTS Users (
-	uid INT NOT NULL AUTO_INCREMENT,
-	PRIMARY KEY(uid),
-
-	# Passwords stored using the bcrypt hash, which has a maximum length of 60
-	# characters.
-	password CHAR(60) BINARY,
-	# RFC 5321 specifies that emails have a maximum length of 255
-	email VARCHAR(255),
-	# What this user wants others to identify them as
-	displayName VARCHAR(100),
-	activated BOOLEAN
+PRAGMA synchronous = OFF;
+PRAGMA journal_mode = MEMORY;
+BEGIN TRANSACTION;
+CREATE TABLE "CalendarShares" (
+  "uid" INTEGER NOT NULL,
+  "cid" INTEGER NOT NULL,
+  "newCalendarName" varchar(200) DEFAULT NULL,
+  PRIMARY KEY ("uid","cid")
+  CONSTRAINT "CalendarShares_ibfk_1" FOREIGN KEY ("uid") REFERENCES "Users" ("uid"),
+  CONSTRAINT "CalendarShares_ibfk_2" FOREIGN KEY ("cid") REFERENCES "Calendars" ("cid")
 );
-
-# Every calendar must be visible by at least one person, or we have no reason
-# to store it.  This allows us to make the uid part of the primary key.
-CREATE TABLE IF NOT EXISTS Calendars (
-	cid INT NOT NULL AUTO_INCREMENT,
-	owner INT NOT NULL,
-	# Use the calendar id and the user id as a paired primary key.
-	PRIMARY KEY(cid),
-
-	# What this user named this calendar.
-	name VARCHAR(200),
-
-	# The color (as a hex code) that the user picked for this calendar.
-	color CHAR(6),
-
-	FOREIGN KEY(owner) REFERENCES Users(uid)
+CREATE TABLE "Calendars" (
+  "cid" INTEGER NOT NULL PRIMARY KEY,
+  "owner" INTEGER NOT NULL,
+  "name" varchar(200) DEFAULT NULL,
+  "color" char(6) DEFAULT NULL,
+  CONSTRAINT "Calendars_ibfk_1" FOREIGN KEY ("owner") REFERENCES "Users" ("uid")
 );
-
-# Unique event ids allow for sharing.
-CREATE TABLE IF NOT EXISTS Events (
-	eid INT NOT NULL AUTO_INCREMENT,
-	PRIMARY KEY(eid),
-
-	creator INT NOT NULL,
-	FOREIGN KEY (creator) REFERENCES Users(uid),
-	calendar INT NOT NULL,
-	FOREIGN KEY (calendar) REFERENCES Calendars(cid),
-
-	name VARCHAR(100),
-
-	# If the event lasts all day.
-	allDay BOOLEAN,
-	# When the event starts.
-	# 2013-01-22 11:00
-	# January 22, 2013 11am
-	start CHAR(17),
-	# When it ends.
-	end CHAR(17),
-
-	# How we repeat
-	# 0: No repeating
-	# 1: Daily repeat
-	# 2: Weekly repeat
-	# 3: Monthly repeat
-	# 4: Yearly repeat
-	repeatType TINYINT,
-
-	# If/how often the event repeats.
-	repeatFrequency INTEGER,
-	# When it stops repeating.
-	repeatUntil DATE,
-
-	# -5 to 5, or null.
-	# if NULL and repeatType is monthly, look at the startDate to find the date
-	# we repeat on.
-	weekOfMonth TINYINT,
-
-	# Used like a bitmask, _SMTWTFS
-	days TINYINT,
-
-	# Only consider full weeks during the month.
-	fullWeek BOOLEAN
+CREATE TABLE "EventShares" (
+  "uid" INTEGER NOT NULL,
+  "eid" INTEGER NOT NULL,
+  "cid" INTEGER NOT NULL,
+  "newName" varchar(100) DEFAULT NULL,
+  PRIMARY KEY ("uid","eid")
+  CONSTRAINT "EventShares_ibfk_1" FOREIGN KEY ("uid") REFERENCES "Users" ("uid"),
+  CONSTRAINT "EventShares_ibfk_2" FOREIGN KEY ("eid") REFERENCES "Events" ("eid"),
+  CONSTRAINT "EventShares_ibfk_3" FOREIGN KEY ("cid") REFERENCES "Calendars" ("cid")
 );
-
-# Do we do this on a per-user basis, or globally?
-#CREATE TABLE IF NOT EXISTS ModifiedEvents (
-#	meid INT NOT NULL,
-#	eid INT NOT NULL,
-#	FOREIGN KEY (eid) REFERENCES Events(eid) ON DELETE CASCADE,
-#	PRIMARY KEY(eid,meid),
-#
-#	originalStartDate DATE,
-#
-#	newStartDate DATE,
-#	newEndDate DATE,
-#
-#	newStartTime TIME,
-#	newEndTime TIME
-#);
-
-# Each event can have multiple owners, each owner can have multiple events.
-# (Many to Many, with full participation from events).
-CREATE TABLE IF NOT EXISTS EventShares (
-	uid INT NOT NULL,
-	eid INT NOT NULL,
-	cid INT NOT NULL,
-	PRIMARY KEY (uid, eid),
-	newName VARCHAR(100),
-
-	# permissions INTEGER
-
-	FOREIGN KEY(uid) REFERENCES Users(uid),
-	FOREIGN KEY(eid) REFERENCES Events(eid),
-	FOREIGN KEY(cid) REFERENCES Calendars(cid)
+CREATE TABLE "Events" (
+  "eid" INTEGER NOT NULL PRIMARY KEY,
+  "creator" INTEGER NOT NULL,
+  "calendar" INTEGER NOT NULL,
+  "name" varchar(100) DEFAULT NULL,
+  "allDay" tinyint(1) DEFAULT NULL,
+  "repeatType" tinyint(4) DEFAULT NULL,
+  "repeatFrequency" INTEGER DEFAULT NULL,
+  "repeatUntil" date DEFAULT NULL,
+  "weekOfMonth" tinyint(4) DEFAULT NULL,
+  "days" tinyint(4) DEFAULT NULL,
+  "fullWeek" tinyint(1) DEFAULT NULL,
+  "start" char(17) DEFAULT NULL,
+  "end" char(17) DEFAULT NULL,
+  CONSTRAINT "Events_ibfk_1" FOREIGN KEY ("creator") REFERENCES "Users" ("uid"),
+  CONSTRAINT "Events_ibfk_2" FOREIGN KEY ("calendar") REFERENCES "Calendars" ("cid")
 );
-
-# One event can be in multiple calendars, one calendar can have multiple
-# events. One calendar cannot have the same event twice. (Many to Many, with
-# full participation from events).
-CREATE TABLE IF NOT EXISTS CalendarShares (
-	uid INT NOT NULL,
-	cid INT NOT NULL,
-	PRIMARY KEY (uid, cid),
-
-	newCalendarName VARCHAR(200),
-
-	FOREIGN KEY(uid) REFERENCES Users(uid),
-	FOREIGN KEY(cid) REFERENCES Calendars(cid)
+CREATE TABLE "Users" (
+  "uid" INTEGER NOT NULL PRIMARY KEY,
+  "password" char(60) DEFAULT NULL,
+  "email" varchar(255) DEFAULT NULL,
+  "displayName" varchar(100) DEFAULT NULL,
+  "activated" tinyint(1) DEFAULT NULL
 );
+CREATE TABLE Tasks (
+	"tid" INTEGER NOT NULL PRIMARY KEY,
+	"creator" INTEGER NOT NULL,
+	"name" varchar(100) DEFAULT NULL,
+	"timeRequired" INTEGER,
+	"timeInvested" INTEGER NOT NULL,
+	"dueDate" date DEFAULT NULL,
+	CONSTRAINT "Tasks_ibfk_1" FOREIGN KEY ("creator") REFERENCES "Users" ("uid")
+);
+CREATE TABLE TaskInstances (
+	"tiid" INTEGER NOT NULL PRIMARY KEY,
+	"tid" INTEGER NOT NULL,
+	"length" INTEGER NOT NULL,
+	"when" date NOT NULL,
+	"completed" tinyint(1) DEFAULT NULL,
+	CONSTRAINT "TaskInstances_ibfk_1" FOREIGN KEY ("tid") REFERENCES "Tasks" ("tid")
+);
+CREATE TABLE EventInstances (
+	eiid INTEGER NOT NULL,
+	eid INTEGER NOT NULL,
+	removed tinyint(1) NOT NULL DEFAULT "0",
+	allDay tinyint(1) NOT NULL DEFAULT "0",
+	start CHAR(17) DEFAULT NULL,
+	end CHAR(17) DEFAULT NULL,
+	CONSTRAINT "EventInstances_ibfk_1" FOREIGN KEY ("eid") REFERENCES "Events" ("eid"),
+	PRIMARY KEY (eiid, eid)
+);
+CREATE INDEX "Calendars_owner" ON "Calendars" ("owner");
+CREATE INDEX "Events_creator" ON "Events" ("creator");
+CREATE INDEX "Events_calendar" ON "Events" ("calendar");
+CREATE INDEX "EventShares_eid" ON "EventShares" ("eid");
+CREATE INDEX "EventShares_cid" ON "EventShares" ("cid");
+CREATE INDEX "CalendarShares_cid" ON "CalendarShares" ("cid");
+END TRANSACTION;
