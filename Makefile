@@ -2,6 +2,16 @@
 
 all: frontend backend
 
+clean:
+	@echo -e "CLEAN\ttasker"
+	@rm -f tasker
+	@echo -e "CLEAN\tmain.js"
+	@rm -r static/main.js
+	@echo -e "CLEAN\tdesktop.js"
+	@rm -r static/desktop.js
+	@echo -e "CLEAN\tresponsive.js"
+	@rm -r static/responsive.js
+
 backend: tasker
 
 tasker: backend/*.go
