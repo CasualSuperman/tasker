@@ -183,7 +183,7 @@ func updateEvent(res http.ResponseWriter, req *http.Request, sess db.Database) a
 		return &apiFormResponse{false, errFields, errMsgs}
 	} else {
 		if checkUserOwnsCalendar(sess, uid, event["calendar"].(int)) &&
-		   checkUserOwnsEvent(sess, uid, event["eid"].(int)) {
+			checkUserOwnsEvent(sess, uid, event["eid"].(int)) {
 			eventTable := sess.ExistentCollection("Events")
 			err := eventTable.Update(db.Cond{"eid": eid}, db.Set(event))
 			if err != nil {

@@ -101,9 +101,10 @@ func (fr *apiFormResponse) Code() int {
 }
 
 type apiRawResponse struct {
-	Success bool `json:"success"`
-	Data interface{} `json:"data"`
+	Success bool        `json:"success"`
+	Data    interface{} `json:"data"`
 }
+
 func (ar apiRawResponse) Json() []byte {
 	data, _ := json.Marshal(ar.Data)
 	return data

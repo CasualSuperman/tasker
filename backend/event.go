@@ -208,16 +208,16 @@ func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
 	switch e.repeatType {
 
 	case NoRepeat:
-	// If we don't repeat, make see if the original even occurs between the
-	// start and end times. If it does, then send it. Always close the
-	// channel.
+		// If we don't repeat, make see if the original even occurs between the
+		// start and end times. If it does, then send it. Always close the
+		// channel.
 		var eventCopy Event = *e
 		eventCopy.StartTime = e.start
 		resp <- eventCopy
 
 	case DailyRepeat:
-	// If it repeats every day, find the first time it happens in the range
-	// and iterate through until we hit the end.
+		// If it repeats every day, find the first time it happens in the range
+		// and iterate through until we hit the end.
 		startDay := e.start
 		for startDay.Before(start) {
 			startDay = startDay.AddDate(0, 0, e.repeatFrequency)
@@ -291,7 +291,7 @@ func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
 		// We're now after start, make sure we're before end.
 		for dateThisYear.Before(end) {
 			// Sending a match
-			eventThisYear := *e;
+			eventThisYear := *e
 			eventThisYear.StartTime = dateThisYear
 
 			resp <- eventThisYear
