@@ -323,7 +323,7 @@ function generateSummary() {
 		return insertSummary(summary);
 	} else if (freq === "monthly") {
 		var dateOrDay = $("input[name=repeatByMonth]:checked", formName).val();
-		var n = parseInt($("input[name=startDate]", formName).val().split("-")[2]);
+		var n = new XDate($("input[name=startDate]", formName).val()).getDate();
 
 		if (dateOrDay === "date") {
 			summary = "On the " + ordinal(n);
@@ -372,10 +372,10 @@ function generateSummary() {
 		} else {
 			summary += "years on ";
 		}
-		var start = $("input[name=startDate]", formName).val().split("-");
+		var start = new XDate($("input[name=startDate]", formName).val());
 
-		summary += mToMonth(parseInt(start[1]));
-		summary += " " + ordinal(parseInt(start[2])) + ".";
+		summary += mToMonth(start.getMonth() + 1);
+		summary += " " + ordinal(start.getDate()) + ".";
 	}
 
 
