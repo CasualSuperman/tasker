@@ -6,11 +6,11 @@
 
 	<h2>Starts on:</h2>
 	<input name="startDate" type="date"></input>
-	<input name="startTime" class="time" value="9:00am"></input>
+	<input name="startTime" class="time" value="9:00 AM"></input>
 
 	<h2>Ends on:</h2>
 	<input name="endDate" type="date"></input>
-	<input name="endTime" class="time" value="10:00am"></input>
+	<input name="endTime" class="time" value="10:00 AM"></input>
 
 	<h2>All day:</h2>
 	<input type="checkbox" name="allDay" /> This event lasts all day.
@@ -153,7 +153,7 @@ $("input.done", formName).click(function() {
 //================================= Create the Date pickers. =================================//
 var startPicker = $("input[name=startDate]", formName).pickadate({
 	format: "mmmm d, yyyy",
-	formatSubmit: "yyyy-mm-d",
+	formatSubmit: "yyyy-mm-dd",
 	onSet: function() {
 		var currEndDate = new XDate(endPicker.get());
 		var currStartDate = new XDate(this.get());
@@ -177,7 +177,7 @@ var startPicker = $("input[name=startDate]", formName).pickadate({
 
 var endPicker = $("input[name=endDate]", formName).pickadate({
 	format: "mmmm d, yyyy",
-	formatSubmit: "yyyy-mm-d",
+	formatSubmit: "yyyy-mm-dd",
 }).pickadate("picker");
 
 var repeatPicker = $("input[name=afterDate]", formName).pickadate({
