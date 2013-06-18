@@ -222,7 +222,13 @@ func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
 		for startDay.Before(start) {
 			startDay = startDay.AddDate(0, 0, e.repeatFrequency)
 		}
-		for startDay.Before(end) {
+
+		lastDay := end
+		if e.repeatUntil != nil {
+			lastDay = *e.repeatUntil
+		}
+
+		for startDay.Before(end) && startDay.Before(lastDay) {
 			var eventInstance Event = *e
 			eventInstance.StartTime = startDay
 			resp <- eventInstance
