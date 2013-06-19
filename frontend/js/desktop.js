@@ -46,20 +46,24 @@
 		this.overlay = document.createElement("div");
 		this.container = document.createElement("div");
 		this.controls = document.createElement("div");
+		this.createPanel = document.createElement("div");
 
 		this.overlay.id = "overlay";
 		this.container.id = "container";
 		this.controls.id = "controls";
+		this.createPanel.id = "createOption";
 
 		this.transitioning = false;
 
 		root.appendChild(this.overlay);
 		root.appendChild(this.container);
+		root.appendChild(this.createPanel);
 		root.appendChild(this.controls);
 
 		initControls(this, calendar, this.controls);
 		initContainer(this, this.container);
 		initOverlay(this, this.overlay);
+		$(this.createPanel).load("templates/desktop/createOption.htm");
 
 		//displayControls(calendar, this.controls);
 
@@ -189,6 +193,8 @@
 		this.slideOutControls();
 		$("#addControls", this.controls).show().load(panelUrlBase + url, cb);
 		$("#panelClose", this.controls).fadeIn();
+		$("#navigation div").fadeOut();
+		$("#navigation").animate("width", "100%");
 	};
 
 	DesktopUI.prototype.displayLoginForm = function() {

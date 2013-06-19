@@ -100,3 +100,21 @@ input, select {
 		width: 30%;
 	}
 }
+
+#createOption {
+	border: 3px solid @grey;
+	bottom: 1em;
+	display: none;
+	position: absolute;
+	right: 35px;
+	z-index: 3;
+
+	.option {
+		cursor: pointer;
+		padding: 0.25em;
+
+		&:hover {
+			background-color: @lightgrey;
+		}
+	}
+}

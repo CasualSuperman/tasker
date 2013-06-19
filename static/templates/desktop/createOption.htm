@@ -1,0 +1,18 @@
+<script>
+var options = ["Event", "Task", "Calendar"];
+var optionsContainer = $("#createOption");
+$.each(options, function(i, option) {
+	var optionElem = $("<div>");
+	optionElem.addClass("option").text(option);
+	optionsContainer.append(optionElem);
+
+	optionElem.on("click", function() {
+		ui.showPanel("create/" + option.toLowerCase() + ".htm");
+		optionsContainer.fadeOut();
+	});
+});
+
+$("#container").on("click", function() {
+	optionsContainer.fadeOut();
+});
+</script>
