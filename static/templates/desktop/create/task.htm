@@ -1,0 +1,88 @@
+<form id="eventForm">
+	<h2>Task name:</h2>
+	<input name="name" placeholder="Untitled Event" />
+
+	<h2>Time required:</h2>
+	<input name="duration" class="time" value="3 hours" />
+
+	<h2>Due by:</h2>
+	<input name="dueDate" type="date" />
+	<input name="dueTime" class="time" value="10:00 AM">
+
+	<br />
+	<br />
+	<input type="button" value="Save" class="done" />
+</form>
+
+<script>
+var formName = "#eventForm";
+$("input.done", formName).click(function() {
+	ui.model.createTask($(formName).serialize(), function(data) {
+		if (data.success) {
+			$("#panelClose").click();
+			ui.updateDisplay();
+		} else {
+			// Loop through all the errors and display all the errors.
+		}
+	});
+});
+
+var fillValue = function() {};
+
+// Preload the selected date to the form.
+var selectedDates = $(".selectTriangle").parent();
+var d;
+if (selectedDates.length > 0) {
+	d = selectedDates.data("date");
+} else {
+	d = ui.currentDate;
+}
+
+if (d !== undefined) {
+	var today = d.toString("yyyy-MM-dd");
+	var displayString = d.toString("MMMM dd, yyyy");
+
+	var dates = $("input[type=date]");
+	fillValue = function() {
+		dates.val(displayString);
+		dates.each(function(ignored, input) {
+			$("[name=" + $(input).attr("name") + "_submit]").val(today);
+		});
+	}
+	dates.attr("data-value", today);
+}
+
+var duration = $("input[name=duration]").pickatime({
+	min: [0, 15],
+	interval: 15,
+	format: "H:i",
+	formatLabel: function(time) {
+		if (time.hour === 0) {
+			return "i m!inutes";
+		} else if (time.hour === 1) {
+			var remainder = "";
+			if (time.mins > 0) {
+				remainder = " !and i m!inutes";
+			}
+			return "1 !hour" + remainder;
+		} else {
+			var remainder = "";
+			if (time.mins > 0) {
+				remainder = " !and i m!inutes";
+			}
+			return time.hour + " !hours" + remainder;
+		}
+	}
+}).pickatime("picker");
+
+var duePicker = $("input[name=dueDate]").pickadate({
+	format: "mmmm d, yyyy",
+	formatSubmit: "yyyy-mm-dd",
+}).pickadate("picker");
+
+var dueTime = $("input[name=dueTime]").pickatime({
+	max: [24, 0]
+}).pickatime("picker");
+
+fillValue();
+</script>
