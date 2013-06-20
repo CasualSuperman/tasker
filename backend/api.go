@@ -27,11 +27,16 @@ var handlers = map[string]handlerFunc{
 	"user/login":    userLogin,
 	"user/logout":   userLogout,
 	"user/info":     userInfo,
+
 	"events/range":  eventsInRange,
 	"events/create": createEvent,
 	"events/update": updateEvent,
 	"events/dump":   dumpEvent,
+
 	"calendars":     calendars,
+
+//	"tasks/range":   tasksInRange,
+	"tasks/create":  createTask,
 }
 
 // This runs our API server. We take a database connection so we could

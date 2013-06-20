@@ -18,11 +18,11 @@ const (
 )
 
 type Event struct {
+	Eid       int           `json:"eid"`
 	Name      string        `json:"name"`
 	StartTime time.Time     `json:"startTime"`
 	Duration  time.Duration `json:"duration"`
 	Calendar  int           `json:"cid"`
-	Eid       int           `json:"eid"`
 	creator   int
 
 	allDay bool

@@ -51,6 +51,13 @@
 		});
 	};
 
+	API.prototype.createTask = function(formData, cb) {
+		$.ajax({
+			url: this.server + "tasks/create?" + formData,
+			dataType: "json"
+		}).done(cb);
+	};
+
 	API.prototype.createEvent = function(formData, cb) {
 		$.ajax({
 			url: this.server + "events/create?" + formData,

@@ -3,7 +3,7 @@
 	<input name="name" placeholder="Untitled Event" />
 
 	<h2>Time required:</h2>
-	<input name="duration" class="time" value="3 hours" />
+	<input name="duration" class="time" value="3:00" />
 
 	<h2>Due by:</h2>
 	<input name="dueDate" type="date" />
@@ -17,7 +17,8 @@
 <script>
 var formName = "#eventForm";
 $("input.done", formName).click(function() {
-	ui.model.createTask($(formName).serialize(), function(data) {
+	console.log($(formName).serialize());
+	ui.model.apiServer.createTask($(formName).serialize(), function(data) {
 		if (data.success) {
 			$("#panelClose").click();
 			ui.updateDisplay();

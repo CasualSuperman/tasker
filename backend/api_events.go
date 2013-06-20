@@ -142,20 +142,19 @@ func createEvent(res http.ResponseWriter, req *http.Request, sess db.Database) a
 
 	if len(errFields) > 0 {
 		return &apiFormResponse{false, errFields, errMsgs}
+	}
+	if checkUserOwnsCalendar(sess, uid, event["calendar"].(int)) {
+		eventTable := sess.ExistentCollection("Events")
+		_, err := eventTable.Append(event)
+		if err != nil {
+			return &apiFormResponse{false, nil, nil}
+		}
+		return &apiFormResponse{true, nil, nil}
 	} else {
-		if checkUserOwnsCalendar(sess, uid, event["calendar"].(int)) {
-			eventTable := sess.ExistentCollection("Events")
-			_, err := eventTable.Append(event)
-			if err != nil {
-				return &apiFormResponse{false, nil, nil}
-			}
-			return &apiFormResponse{true, nil, nil}
-		} else {
-			return &apiFormResponse{
-				false,
-				[]string{"calendar"},
-				[]string{"You don't have permission to use that calendar."},
-			}
+		return &apiFormResponse{
+			false,
+			[]string{"calendar"},
+			[]string{"You don't have permission to use that calendar."},
 		}
 	}
 
