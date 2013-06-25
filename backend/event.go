@@ -211,6 +211,9 @@ func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
 		// If we don't repeat, make see if the original even occurs between the
 		// start and end times. If it does, then send it. Always close the
 		// channel.
+		if e.start.After(end) || e.end.Before(start) {
+			return
+		}
 		var eventCopy Event = *e
 		eventCopy.StartTime = e.start
 		resp <- eventCopy
@@ -295,7 +298,7 @@ func (e *Event) FindInRange(start, end time.Time, resp chan Event) {
 		dateThisYear = dateThisYear.AddDate(years, 0, 0)
 
 		// We're now after start, make sure we're before end.
-		for dateThisYear.Before(end) {
+		for dateThisYear.Before(end) && dateThisYear.Add(e.Duration).After(start) {
 			// Sending a match
 			eventThisYear := *e
 			eventThisYear.StartTime = dateThisYear
