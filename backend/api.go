@@ -33,10 +33,9 @@ var handlers = map[string]handlerFunc{
 	"events/update": updateEvent,
 	"events/dump":   dumpEvent,
 
-	"calendars":     calendars,
+	"calendars": calendars,
 
-//	"tasks/range":   tasksInRange,
-	"tasks/create":  createTask,
+	"tasks/create": createTask,
 }
 
 // This runs our API server. We take a database connection so we could
