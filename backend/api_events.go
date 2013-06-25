@@ -56,51 +56,11 @@ func eventsInRange(res http.ResponseWriter, req *http.Request, sess db.Database)
 	}
 
 	uid := int(session.Values["uid"].(int64))
-	eventTable := sess.ExistentCollection("Events")
 
-	eventResults, err := eventTable.FindAll(db.Cond{"creator": uid})
-
-	events := make([]Event, len(eventResults))
-	eventsInRange := make([]Event, 0)
-	eventChan := make(chan Event, 10)
-	doneChan := make(chan bool)
-
-	if err == nil {
-		waitingFor := len(eventResults)
-
-		for i, event := range eventResults {
-			(&events[i]).ParseDB(event)
-			personalEventChan := make(chan Event)
-
-			// Start finding events but continue looping.
-			go events[i].FindInRange(startDate, endDate, personalEventChan)
-
-			// Watch for the returned events. If the channel gets closed, tell
-			// the waitGroup we're done. Otherwise, keep watching.
-			go func() {
-				var e Event
-				ok := true
-
-				for ok {
-					if e, ok = <-personalEventChan; ok {
-						eventChan <- e
-					}
-				}
-				doneChan <- true
-			}()
-		}
-		for waitingFor > 0 {
-			select {
-			case <-doneChan:
-				waitingFor--
-			case e := <-eventChan:
-				eventsInRange = append(eventsInRange, e)
-			}
-		}
-	}
+	events, err := getEventsInRange(uid, startDate, endDate, sess)
 
 	return &eventsList{
-		eventsInRange,
+		events,
 		startDate,
 		endDate,
 	}

@@ -331,3 +331,50 @@ func getIntFromHTTP(req *http.Request, field string) (int, error) {
 	tempStr := req.FormValue(field)
 	return strconv.Atoi(tempStr)
 }
+
+func getEventsInRange(uid int, startDate, endDate time.Time, sess db.Database) ([]Event, error) {
+	eventTable := sess.ExistentCollection("Events")
+
+	eventResults, err := eventTable.FindAll(db.Cond{"creator": uid})
+
+	events := make([]Event, len(eventResults))
+	var eventsInRange []Event
+	eventChan := make(chan Event, 10)
+	doneChan := make(chan bool)
+
+	if err != nil {
+		return nil, err
+	}
+	waitingFor := len(eventResults)
+
+	for i, event := range eventResults {
+		(&events[i]).ParseDB(event)
+		personalEventChan := make(chan Event)
+
+		// Start finding events but continue looping.
+		go events[i].FindInRange(startDate, endDate, personalEventChan)
+
+		// Watch for the returned events. If the channel gets closed, tell
+		// the waitGroup we're done. Otherwise, keep watching.
+		go func() {
+			var e Event
+			ok := true
+
+			for ok {
+				if e, ok = <-personalEventChan; ok {
+					eventChan <- e
+				}
+			}
+			doneChan <- true
+		}()
+	}
+	for waitingFor > 0 {
+		select {
+		case <-doneChan:
+			waitingFor--
+		case e := <-eventChan:
+			eventsInRange = append(eventsInRange, e)
+		}
+	}
+	return eventsInRange, nil
+}
