@@ -70,8 +70,8 @@
 		this.events = [];
 		calendar.getEventsForMonth(this.currentDate.clone(), function(data) {
 			if (data.err === undefined) {
-				_this.events = data.events;
-				displayMonth(_this.container, _this, data.events);
+				_this.events = data.events || [];
+				displayMonth(_this.container, _this, data.events || []);
 
 				expireOldEvents();
 				checkForNextDay();
@@ -176,9 +176,9 @@
 		$(this.container).fadeOut(fadeDuration, function() {
 			var display = this;
 			_this.model.getEventsForMonth(_this.currentDate.clone(), function(data) {
-				_this.events = data.events;
+				_this.events = data.events || [];
 				if (data.err === undefined) {
-					displayMonth(_this.container, _this, data.events);
+					displayMonth(_this.container, _this, data.events || []);
 					$(window).trigger("resize");
 					$(display).fadeIn(fadeDuration);
 					setTimeout(function() {
