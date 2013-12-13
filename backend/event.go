@@ -25,7 +25,7 @@ type Event struct {
 	Calendar  int           `json:"cid"`
 	creator   int
 
-	allDay bool
+	AllDay bool `json:"allDay"`
 
 	start time.Time
 	end   time.Time
@@ -60,6 +60,7 @@ func (e *Event) ParseDB(entry db.Item) {
 	e.Name = entry.GetString("name")
 	e.Calendar = int(entry.GetInt("calendar"))
 	e.Eid = int(entry.GetInt("eid"))
+	e.AllDay = entry.GetBool("allday")
 }
 
 func ParseHTTP(req *http.Request) (map[string]interface{}, []string, []string) {

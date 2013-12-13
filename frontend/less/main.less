@@ -120,14 +120,18 @@ body {
 				color: @accent;
 			}
 
-			&.allday {
+			&.allDay {
 				border-style: solid none;
 				border-width: 1px;
 				margin: 0;
 				padding-left: 0.5em;
+
+				.time {
+					display: none;
+				}
 			}
 
-			&.allday.selected {
+			&.allDay.selected {
 				border-style: solid;
 				border-width: 1px 2px;
 			}

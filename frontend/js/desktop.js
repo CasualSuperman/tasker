@@ -606,6 +606,9 @@
 				eventDiv.addClass(duration + "min")
 						.css({"top": (2.5*(i+1)) + "em"})
 						.data("event", e);
+				if (e.allDay) {
+					eventDiv.addClass("allDay");
+				}
 				$(".name", eventDiv).text(e.name);
 				$(".time", eventDiv).text(new XDate(e.startTime, true).toString("h(:mm)TT"));
 				cell.append(eventDiv);
