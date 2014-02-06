@@ -156,18 +156,25 @@ body {
 				color: @accent;
 			}
 		}
-	}
 
-	.selectTriangle {
-		border-color: transparent transparent @accent transparent;
-		border-style: solid;
-		border-width: 0 0 2em 2em;
-		bottom: 0;
-		height: 0;
-		position: absolute;
-		right: 0;
-		width: 0;
-		z-index: 0;
+		&::after {
+			border-color: transparent transparent @accent transparent;
+			border-style: solid;
+			border-width: 0;
+			bottom: 0;
+			content: " ";
+			display: block;
+			height: 0;
+			position: absolute;
+			right: 0;
+			transition: 0.25s border-width;
+			width: 0;
+			z-index: 0;
+		}
+
+		&.selected::after {
+			border-width: 0 0 2em 2em;
+		}
 	}
 
 	th {

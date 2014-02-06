@@ -429,19 +429,6 @@
 			}
 			if (! $(this).hasClass("selected")) {
 				$("td.selected", root).removeClass("selected");
-				var triangle = $(".selectTriangle", root);
-				if (triangle.length === 0) {
-					triangle = $("<div class='selectTriangle' />");
-					$(this).append(triangle);
-					triangle.fadeIn(250);
-					ui.selectedDate = $(_this).data("date");
-				} else {
-					triangle.fadeOut(100, function() {
-						$(_this).append(this);
-						$(this).fadeIn(250);
-						ui.selectedDate = $(_this).data("date");
-					});
-				}
 				$(this).addClass("selected");
 			}
 		});
@@ -585,7 +572,6 @@
 			// Add the selected indicator.
 			if (ui.selectedDate !== null && 
 				iterDate.valueOf() === ui.selectedDate.valueOf()) {
-				cell.append($("<div class='selectTriangle' />"));
 				cell.addClass("selected");
 			}
 			var eventsOnDay = [];
